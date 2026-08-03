@@ -409,3 +409,42 @@ html, body {
   }
   .import-claims-button{margin-top:0}
 }
+
+/* REAL TRACKER 2.5 AI date helper */
+.ai-date-section{
+  border:1px solid rgba(19,140,255,.22);
+  background:linear-gradient(180deg,#030507,#05080d);
+}
+.beta-pill{
+  display:inline-block;
+  margin-left:6px;
+  padding:2px 7px;
+  border:1px solid rgba(86,199,255,.4);
+  border-radius:999px;
+  color:var(--cyan);
+  font-size:9px;
+  vertical-align:middle;
+}
+.helper-copy{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+  margin:6px 0 12px;
+}
+.ai-helper-buttons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:8px 0 12px;
+}
+.ai-date-section textarea{
+  width:100%;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#05080d;
+  color:white;
+  padding:11px;
+  resize:vertical;
+  outline:none;
+}

@@ -76,6 +76,12 @@ const multiplierInput = $('multiplierInput');
 const marketValueInput = $('marketValueInput');
 const favoriteInput = $('favoriteInput');
 const notesInput = $('notesInput');
+const seasonInput = $('seasonInput');
+const teamInput = $('teamInput');
+const copyDatePromptButton = $('copyDatePromptButton');
+const clearDatePasteButton = $('clearDatePasteButton');
+const dateOnlyPasteInput = $('dateOnlyPasteInput');
+const importDateOnlyButton = $('importDateOnlyButton');
 const addClaimRowButton = $('addClaimRowButton');
 const addFiveClaimsButton = $('addFiveClaimsButton');
 const bulkClaimInput = $('bulkClaimInput');
@@ -239,38 +245,93 @@ function addClaimEntry(date='',rax=''){
  row.innerHTML=`<input class="claim-date-input" type="date" value="${date}"><input class="claim-rax-input" type="number" min="0" step="1" inputmode="numeric" placeholder="RAX" value="${rax}"><button type="button" class="remove-claim-button" aria-label="Remove claim">×</button>`;
  claimRows.appendChild(row);updateClaimEmptyState();
 }
+
+function normalizeDateFromText(text){
+ const cleaned=String(text||'').trim().replace(/[•|–—]/g,' ').replace(/[,]/g,' ').replace(/\s+/g,' ');
+ if(!cleaned)return '';
+ const pad=n=>String(n).padStart(2,'0');
+ const iso=cleaned.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+ const us=cleaned.match(/(\d{1,2})[-\/](\d{1,2})(?:[-\/](\d{2,4}))?/);
+ const named=cleaned.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:\s+(\d{2,4}))?/i);
+ if(iso){
+   return `${iso[1]}-${pad(iso[2])}-${pad(iso[3])}`;
+ }
+ if(us){
+   const yr=us[3] ? (us[3].length===2 ? '20'+us[3] : us[3]) : String(new Date().getFullYear());
+   return `${yr}-${pad(us[1])}-${pad(us[2])}`;
+ }
+ if(named){
+   const months={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+   const yr=named[3] ? (named[3].length===2 ? '20'+named[3] : named[3]) : String(new Date().getFullYear());
+   return `${yr}-${pad(months[named[1].toLowerCase().slice(0,3)]||9)}-${pad(named[2])}`;
+ }
+ return '';
+}
 function parseFlexibleClaimLine(line){
  const cleaned=line.trim().replace(/[•|–—]/g,' ').replace(/\s+/g,' ');
  if(!cleaned)return null;
- const amountMatch=cleaned.match(/(\d+(?:\.\d+)?)\s*(?:rax)?\s*$/i);
- if(!amountMatch)throw new Error(`No RAX amount found in "${line}"`);
- const rax=Number(amountMatch[1]);
- const datePart=cleaned.slice(0,amountMatch.index).replace(/[,]/g,' ').trim();
- let date='';
- const iso=datePart.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
- const us=datePart.match(/(\d{1,2})[-\/](\d{1,2})(?:[-\/](\d{2,4}))?/);
- const named=datePart.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:\s+(\d{2,4}))?/i);
- const pad=n=>String(n).padStart(2,'0');
- if(iso){
-   date=`${iso[1]}-${pad(iso[2])}-${pad(iso[3])}`;
- }else if(us){
-   const yr=us[3] ? (us[3].length===2 ? '20'+us[3] : us[3]) : String(new Date().getFullYear());
-   date=`${yr}-${pad(us[1])}-${pad(us[2])}`;
- }else if(named){
-   const months={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
-   const yr=named[3] ? (named[3].length===2 ? '20'+named[3] : named[3]) : String(new Date().getFullYear());
-   date=`${yr}-${pad(months[named[1].toLowerCase().slice(0,3)]||9)}-${pad(named[2])}`;
- }else{
-   throw new Error(`Could not read the date in "${line}"`);
+ const date=normalizeDateFromText(cleaned);
+ if(!date)throw new Error(`Could not read the date in "${line}"`);
+ const numbers=[...cleaned.matchAll(/\b\d+(?:\.\d+)?\b/g)].map(m=>({value:Number(m[0]),index:m.index,text:m[0]}));
+ // Pick the last number that is not obviously part of the date.
+ const raxCandidate=numbers[numbers.length-1];
+ let rax='';
+ if(raxCandidate && !cleaned.slice(0,raxCandidate.index).match(/\d{4}[-\/]\d{1,2}[-\/]?\d{0,2}$/)){
+   const after=cleaned.slice(raxCandidate.index+raxCandidate.text.length).trim();
+   if(after==='' || /^rax$/i.test(after)) rax=raxCandidate.value;
  }
  return {date,rax};
+}
+function importDateOnlyList(){
+ const lines=dateOnlyPasteInput.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ if(!lines.length){showToast('Paste dates first');return;}
+ try{
+   const dates=[];
+   lines.forEach(line=>{
+     const maybe=line.split(/[,;]+/).map(x=>x.trim()).filter(Boolean);
+     // If line contains multiple comma-separated ISO dates, handle them too.
+     if(maybe.length>1 && maybe.every(x=>normalizeDateFromText(x))){
+       maybe.forEach(x=>dates.push({date:normalizeDateFromText(x),rax:''}));
+     }else{
+       const parsed=parseFlexibleClaimLine(line);
+       if(parsed)dates.push(parsed);
+     }
+   });
+   const seen=new Set([...claimRows.querySelectorAll('.claim-date-input')].map(x=>x.value).filter(Boolean));
+   let added=0;
+   dates.forEach(x=>{
+     if(x.date && !seen.has(x.date)){
+       addClaimEntry(x.date,x.rax);
+       seen.add(x.date);
+       added++;
+     }
+   });
+   showToast(`Added ${added} dates`);
+ }catch(err){alert(err.message);}
+}
+function buildDatePrompt(){
+ const player=playerInput.value.trim()||'[PLAYER NAME]';
+ const sport=sportInput.value||'[SPORT]';
+ const season=seasonInput.value.trim()||'[SEASON/YEAR]';
+ const team=teamInput.value.trim();
+ const teamLine=team ? `Team/context: ${team}\n` : '';
+ return `Find every official game/event date that ${player} played in for ${sport} during ${season}.\n${teamLine}Return ONLY the dates, one per line, in YYYY-MM-DD format. Do not include bullets, scores, opponents, stats, explanations, or extra text.`;
+}
+async function copyDatePrompt(){
+ const prompt=buildDatePrompt();
+ try{
+   await navigator.clipboard.writeText(prompt);
+   showToast('Prompt copied');
+ }catch{
+   window.prompt('Copy this prompt:',prompt);
+ }
 }
 function importBulkClaims(){
  const lines=bulkClaimInput.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
  if(!lines.length){showToast('Paste claim lines first');return;}
  try{
    const parsed=lines.map(parseFlexibleClaimLine).filter(Boolean);
-   parsed.forEach(x=>addClaimEntry(x.date,Math.round(x.rax)));
+   parsed.forEach(x=>addClaimEntry(x.date,x.rax));
    bulkClaimInput.value='';
    showToast(`Imported ${parsed.length} claims`);
  }catch(err){
@@ -280,7 +341,7 @@ function importBulkClaims(){
 
 function updateClaimEmptyState(){claimEmptyState.classList.toggle('hidden',claimRows.children.length>0)}
 function openModal(id=null){
- const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';claimRows.innerHTML='';
+ const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';seasonInput.value=c?.season||'';teamInput.value=c?.team||'';dateOnlyPasteInput.value='';claimRows.innerHTML='';
  const multiplier=Number(c?.multiplier||multiplierInput.value||1);(c?.claims||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>addClaimEntry(x.date,Math.round(Number(x.base)*multiplier)));
  updateClaimEmptyState();archiveButton.style.display=c?'block':'none';archiveButton.textContent=c?.active===false?'Restore':'Archive';
 }
@@ -290,8 +351,8 @@ function collectClaimEntries(multiplier){
   const date=row.querySelector('.claim-date-input').value;const raxText=row.querySelector('.claim-rax-input').value;
   if(!date&&!raxText)continue;
   if(!date)throw new Error('Choose a date for every claim.');
-  if(raxText===''||isNaN(Number(raxText))||Number(raxText)<0)throw new Error('Enter a valid RAX amount for every claim.');
-  claims.push({date,base:Number(raxText)/Number(multiplier||1)});
+  if(raxText!==''&&(isNaN(Number(raxText))||Number(raxText)<0))throw new Error('Enter a valid RAX amount for every claim.');
+  claims.push({date,base:Number(raxText||0)/Number(multiplier||1)});
  }
  return claims.sort((a,b)=>a.date.localeCompare(b.date));
 }
@@ -372,8 +433,8 @@ rarityInput.addEventListener('change',()=>{
  if(auto){multiplierInput.value=auto;}
  else if(rarityInput.value.startsWith('Iconic') && (!multiplierInput.value || multiplierInput.value==='4')){multiplierInput.value=''; multiplierInput.placeholder='Enter Iconic multiplier';}
 });
-cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier,marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
-addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);claimRows.addEventListener('click',e=>{const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
+cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier,marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
+addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 

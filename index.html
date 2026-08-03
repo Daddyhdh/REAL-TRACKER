@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 2.4</title>
+  <title>REAL TRACKER 2.5</title>
 </head>
 <body>
 <div id="appShell">
@@ -155,6 +155,23 @@
         </div>
         <label class="favorite-toggle"><input id="favoriteInput" type="checkbox" /> Favorite card</label>
         <label>Notes<textarea id="notesInput" rows="3" placeholder="Optional notes"></textarea></label>
+      </section>
+
+      <section class="form-section ai-date-section">
+        <div class="form-section-title">AI date helper <span class="beta-pill">BETA</span></div>
+        <p class="helper-copy">Use this to get game dates without typing every row by hand. Copy the prompt, ask ChatGPT, then paste the date list back here.</p>
+        <div class="form-grid">
+          <label>Season / year<input id="seasonInput" placeholder="Example: 2025-26 or 2025" /></label>
+          <label>Team <small>optional</small><input id="teamInput" placeholder="Example: Cowboys, Duke, Lakers" /></label>
+        </div>
+        <div class="ai-helper-buttons">
+          <button type="button" id="copyDatePromptButton" class="add-claim-button">Copy AI prompt</button>
+          <button type="button" id="clearDatePasteButton" class="add-claim-button secondary">Clear paste box</button>
+        </div>
+        <label>Paste dates from AI or a schedule page
+          <textarea id="dateOnlyPasteInput" rows="4" placeholder="2025-09-08\n2025-09-15\nSep 22\n10/06/2025"></textarea>
+        </label>
+        <button type="button" id="importDateOnlyButton" class="import-claims-button">Add dates to claim rows</button>
       </section>
 
       <section class="form-section claim-editor-section">

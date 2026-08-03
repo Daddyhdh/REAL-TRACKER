@@ -1,16 +1,12 @@
-# REAL TRACKER 2.4 Easy Add
+# REAL TRACKER 2.5 AI Date Helper
 
 Public starter update:
-- Added Mystic 5 through Mystic 10 as rarity options
-- Added Iconic 1 through Iconic 20 as rarity options
-- Multiplier remains editable for each card
-- Added +5 claim rows
-- Added fast-paste claim import
-- Public starter still has no owner stats or seeded personal data
-
-Fast paste accepted examples:
-- 2025-08-16, 250
-- Aug 24 150
-- 9/12/2025 420
+- Added Mystic 5-10
+- Added Iconic 1-20
+- Added fast-paste claims
+- Added AI Date Helper
+- Copy a prompt for ChatGPT to find game dates
+- Paste date-only lists back into the app
+- Save cards with blank/zero RAX amounts until the user fills them in
 
 Upload all extracted files to GitHub and commit to main.
