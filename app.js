@@ -90,6 +90,7 @@ const boosterEnabledInput = $('boosterEnabledInput');
 const boosterMultiplierInput = $('boosterMultiplierInput');
 const boosterNotesInput = $('boosterNotesInput');
 const boosterRatesGrid = $('boosterRatesGrid');
+const boosterSection = document.querySelector('.booster-section');
 const cardTypeCurrent = $('cardTypeCurrent');
 const cardTypeOtd = $('cardTypeOtd');
 const cardTypeToggle = $('cardTypeToggle');
@@ -239,11 +240,67 @@ const rarityOptions=[
 
 // Known/estimated defaults. Multiplier stays editable so users can correct it if REAL changes values.
 const rarityMultipliers={
- 'Common':1,
- 'Rare':4,'Epic':10,
- 'Legendary 1':25,'Legendary 2':28,'Legendary 3':32,'Legendary 4':36,'Legendary 5':40,
- 'Mystic 1':75,'Mystic 2':79,'Mystic 3':83,'Mystic 4':87,'Mystic 5':91,'Mystic 6':95,'Mystic 7':99,'Mystic 8':103,'Mystic 9':107,'Mystic 10':111
+  'General':1,
+  'Common':2,
+  'Uncommon':3,
+  'Rare':4,
+  'Epic':10,
+  'Legendary 1':25,
+  'Legendary 2':28,
+  'Legendary 3':32,
+  'Legendary 4':35,
+  'Legendary 5':40,
+  'Mystic 1':75,
+  'Mystic 2':79,
+  'Mystic 3':83,
+  'Mystic 4':87,
+  'Mystic 5':91,
+  'Mystic 6':95,
+  'Mystic 7':98,
+  'Mystic 8':101,
+  'Mystic 9':103,
+  'Mystic 10':105,
+  'Iconic 1':150,
+  'Iconic 2':153,
+  'Iconic 3':156,
+  'Iconic 4':159,
+  'Iconic 5':163,
+  'Iconic 6':167,
+  'Iconic 7':171,
+  'Iconic 8':175,
+  'Iconic 9':180,
+  'Iconic 10':185,
+  'Iconic 11':190,
+  'Iconic 12':196,
+  'Iconic 13':202,
+  'Iconic 14':208,
+  'Iconic 15':214,
+  'Iconic 16':220,
+  'Iconic 17':226,
+  'Iconic 18':233,
+  'Iconic 19':240,
+  'Iconic 20':250
 };
+
+const rarityOtdCaps={
+  'Legendary 1':12500,
+  'Legendary 2':14000,
+  'Legendary 3':16000,
+  'Legendary 4':17500,
+  'Legendary 5':20000,
+  'Mystic 1':37500,
+  'Mystic 2':39500,
+  'Mystic 3':41500,
+  'Mystic 4':43500,
+  'Mystic 5':45500,
+  'Mystic 6':47500,
+  'Mystic 7':49000,
+  'Mystic 8':50000,
+  'Mystic 9':51500,
+  'Mystic 10':52500
+};
+function otdCapForCard(card){return rarityOtdCaps[card?.rarity]||null;}
+
 const sportColors={NFL:'#009dff',NBA:'#009dff',WNBA:'#009dff',MLB:'#009dff',FC:'#009dff',Golf:'#009dff',UFC:'#009dff',CFB:'#009dff',NHL:'#009dff',CBB:'#009dff'};
 
 const sportStatFields={
@@ -298,6 +355,7 @@ function normalizeBooster(b){
  return {enabled:!!b?.enabled,multiplier:Number(b?.multiplier||1),notes:b?.notes||'',rates:{...(b?.rates||{})}};
 }
 function collectBoosterSettings(){
+ if(activeCardType()!=='current')return defaultBooster();
  const rates={};
  boosterRatesGrid.querySelectorAll('.booster-rate-input').forEach(input=>{
   const val=Number(input.value);
@@ -339,23 +397,28 @@ function boosterRaxForStats(stats,booster){
  });
  return Math.round(total*Number(booster.multiplier||1));
 }
-function boosterRaxForClaim(card,claim){return boosterRaxForStats(claim?.stats,card?.booster);}
+function boosterRaxForClaim(card,claim){return (card?.cardType==='current')?boosterRaxForStats(claim?.stats,card?.booster):0;}
 function totalRaxForClaim(card,claim){
  const cardRax=Math.round(Number(claim?.base||0)*Number(card?.multiplier||1));
  return cardRax+boosterRaxForClaim(card,claim);
 }
 function claimCardRax(multiplier,base){return Math.round(Number(base||0)*Number(multiplier||1));}
+function applyOtdCap(card,amount){const cap=otdCapForCard(card);return cap&&card?.cardType!=='current'?Math.min(amount,cap):amount;}
 function refreshClaimRowTotals(){
  const multiplier=Number(multiplierInput.value||1);
- const booster=collectBoosterSettings();
+ const booster=activeCardType()==='current'?collectBoosterSettings():defaultBooster();
+ const isCurrent=activeCardType()==='current';
+ claimRows.classList.toggle('current-mode',isCurrent);
+ claimRows.classList.toggle('otd-mode',!isCurrent);
  claimRows.querySelectorAll('.claim-entry-row').forEach(row=>{
   const base=Number(row.querySelector('.claim-base-input')?.value||0);
   const cardRax=claimCardRax(multiplier,base);
-  const boosterRax=boosterRaxForStats(row._statsData?.stats,booster);
+  const boosterRax=isCurrent?boosterRaxForStats(row._statsData?.stats,booster):0;
   const out=row.querySelector('.claim-total-output');
   if(out)out.value=fmt(cardRax+boosterRax);
   const btn=row.querySelector('.stats-row-button');
-  if(btn && activeCardType()==='current' && isPastDate(row.querySelector('.claim-date-input')?.value) && base>0 && !hasEnteredStats(row._statsData?.stats)){
+  if(btn)btn.hidden=!isCurrent;
+  if(btn && isCurrent && isPastDate(row.querySelector('.claim-date-input')?.value) && base>0 && !hasEnteredStats(row._statsData?.stats)){
     btn.classList.add('needs-stats');
   }else if(btn){
     btn.classList.remove('needs-stats');
@@ -365,7 +428,7 @@ function refreshClaimRowTotals(){
 }
 function updateBoosterPreview(){
  if(!boosterPreviewText || !editingStatsRow)return;
- const booster=collectBoosterSettings();
+ const booster=activeCardType()==='current'?collectBoosterSettings():defaultBooster();
  const stats=collectStatsFromModal();
  const est=boosterRaxForStats(stats,booster);
  boosterPreviewText.textContent=`Booster estimate: ${fmt(est)} RAX`;
@@ -411,8 +474,10 @@ function recompute(){
  const daily=Object.keys(byDate).sort().map(date=>({date,total:byDate[date].reduce((s,x)=>s+x.rax,0),claims:byDate[date].sort((a,b)=>a.sport.localeCompare(b.sport)||b.rax-a.rax)}));
  const cards=COLLECTION.filter(c=>c.active!==false).map(c=>{
   const raw=(c.claims||[]).reduce((s,x)=>s+totalRaxForClaim(c,x),0);
-  const collectible=(c.cardType==='current'?raw:rows.filter(r=>r.player===c.player&&r.selected).reduce((s,x)=>s+x.rax,0));
-  return {...c,raw,collectible,lost:raw-collectible,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||''};
+  const uncappedCollectible=(c.cardType==='current'?raw:rows.filter(r=>r.player===c.player&&r.selected).reduce((s,x)=>s+x.rax,0));
+  const collectible=applyOtdCap(c,uncappedCollectible);
+  const cap=otdCapForCard(c);
+  return {...c,raw,collectible,otdCap:cap,capRemaining:cap?Math.max(0,cap-collectible):null,lost:raw-collectible,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||''};
  }).sort((a,b)=>b.collectible-a.collectible);
  DATA={daily,cards,totals:{raw:cards.reduce((s,c)=>s+c.raw,0),collectible:cards.reduce((s,c)=>s+c.collectible,0),lost:cards.reduce((s,c)=>s+c.lost,0)}};
 }
@@ -449,7 +514,7 @@ function renderClaims(){
 }
 function renderCards(){
  const q=cardSearch.value.trim().toLowerCase(),selected=document.querySelector('.filter-chip.active')?.dataset.filter||'all';
- cardsGrid.innerHTML=DATA.cards.filter(c=>(selected==='all'||c.sport===selected)&&(!q||c.player.toLowerCase().includes(q))).map(c=>`<article class="collection-card" data-edit="${c.id}">${c.favorite?'<div class="favorite-star">★</div>':''}<div class="rarity">${c.rarity.toUpperCase()}</div><div class="card-player">${c.player}</div><div class="card-meta">${c.sport} • ${(c.cardType||'otd')==='current'?'Current':'OTD'}${c.booster?.enabled?' • Booster':''}</div><div class="card-otd">${fmt(c.collectible)}</div><div class="card-value">${c.marketValue?fmt(c.marketValue)+' market value':'Add market value'}</div></article>`).join('');
+ cardsGrid.innerHTML=DATA.cards.filter(c=>(selected==='all'||c.sport===selected)&&(!q||c.player.toLowerCase().includes(q))).map(c=>`<article class="collection-card" data-edit="${c.id}">${c.favorite?'<div class="favorite-star">★</div>':''}<div class="rarity">${c.rarity.toUpperCase()}</div><div class="card-player">${c.player}</div><div class="card-meta">${c.sport} • ${(c.cardType||'otd')==='current'?'Current':'OTD'}${c.booster?.enabled&&c.cardType==='current'?' • Booster':''}${c.otdCap?' • Cap '+fmt(c.otdCap):''}</div><div class="card-otd">${fmt(c.collectible)}</div><div class="card-value">${c.marketValue?fmt(c.marketValue)+' market value':'Add market value'}</div></article>`).join('');
 }
 function renderStats(){
  const claimed=claimedTotal(),total=DATA.totals.collectible,pct=total?claimed/total:0;ringPercent.textContent=Math.round(pct*100)+'%';seasonRing.style.background=`conic-gradient(var(--green) ${pct*360}deg,#163048 0deg)`;
@@ -472,7 +537,7 @@ function renderPortfolio(){
 function renderPortfolioTable(){const q=portfolioSearch.value.trim().toLowerCase(),sort=portfolioSort.value;let rows=DATA.cards.filter(c=>!q||c.player.toLowerCase().includes(q));if(sort==='value')rows.sort((a,b)=>b.marketValue-a.marketValue);if(sort==='otd')rows.sort((a,b)=>b.collectible-a.collectible);if(sort==='name')rows.sort((a,b)=>a.player.localeCompare(b.player));portfolioTable.innerHTML=rows.map(c=>`<div class="portfolio-row" data-edit="${c.id}"><div><h3>${c.favorite?'★ ':''}${c.player}</h3><p>${c.sport} • ${c.rarity} • ${fmt(c.collectible)} OTD</p></div><div class="portfolio-values"><strong>${fmt(c.marketValue)}</strong><small>market value</small></div></div>`).join('')}
 function renderManage(){
  if(formulaSampleCount){formulaSampleCount.textContent=`${formulaSamples().length} actual RAX samples saved`;}
- manageList.innerHTML=COLLECTION.map(c=>`<div class="manage-row"><div><div class="manage-name">${c.favorite?'★ ':''}${c.player}${c.active===false?'<span class="archived-badge">ARCHIVED</span>':''}</div><div class="manage-meta">${(c.cardType||'otd')==='current'?'Current Season':'OTD'} • ${c.sport} • ${c.rarity} • ${c.multiplier}× • ${(c.claims||[]).length} rows${c.marketValue?' • '+fmt(c.marketValue)+' value':''}</div></div><button class="edit-button" data-edit="${c.id}">Edit</button></div>`).join('');
+ manageList.innerHTML=COLLECTION.map(c=>`<div class="manage-row"><div><div class="manage-name">${c.favorite?'★ ':''}${c.player}${c.active===false?'<span class="archived-badge">ARCHIVED</span>':''}</div><div class="manage-meta">${(c.cardType||'otd')==='current'?'Current Season':'OTD'} • ${c.sport} • ${c.rarity} • ${c.multiplier}×${otdCapForCard(c)&&c.cardType!=='current'?' • '+fmt(otdCapForCard(c))+' cap':''} • ${(c.claims||[]).length} rows${c.marketValue?' • '+fmt(c.marketValue)+' value':''}</div></div><button class="edit-button" data-edit="${c.id}">Edit</button></div>`).join('');
 }
 function renderAll(){recompute();renderDashboard();renderClaims();renderCards();renderStats();renderManage();renderPortfolio()}
 function setScreen(screen){activeScreen=screen;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelector('#'+screen+'Screen').classList.add('active');document.querySelectorAll('[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));screenTitle.textContent={dashboard:'Dashboard',claims:'Claims',portfolio:'Portfolio',cards:'My Cards',manage:'Manage',stats:'Analytics'}[screen];window.scrollTo({top:0,behavior:'smooth'})}
@@ -675,9 +740,9 @@ async function forgotPassword(){
 
 
 function addClaimEntry(date='',base='',entry=null){
- const row=document.createElement('div');row.className='claim-entry-row';
- const statsLabel=entry?.statsConfirmed?'✓':(entry?.stats?'Review':'Stats');
- row.innerHTML=`<input class="claim-date-input" type="date" value="${date}"><input class="claim-base-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Base" value="${base}"><input class="claim-total-output" type="text" value="" placeholder="0" readonly title="Base RAX × card multiplier + booster estimate"><input class="estimated-rax-input" type="text" value="" placeholder="—" readonly title="Estimated RAX will appear after the formula is learned"><button type="button" class="stats-row-button">${statsLabel}</button><button type="button" class="remove-claim-button" aria-label="Remove row">×</button>`;
+ const row=document.createElement('div');row.className='claim-entry-row premium-claim-row';
+ const statsLabel=entry?.statsConfirmed?'Stats ✓':(entry?.stats?'Review stats':'Add stats');
+ row.innerHTML=`<label class="claim-field date-field"><span>Date</span><input class="claim-date-input" type="date" value="${date}"></label><label class="claim-field"><span>Base RAX</span><input class="claim-base-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" value="${base}"></label><label class="claim-field total-field"><span>Total RAX</span><input class="claim-total-output" type="text" value="" placeholder="0" readonly title="Base RAX × card multiplier + booster estimate"></label><label class="claim-field est-field"><span>Est.</span><input class="estimated-rax-input" type="text" value="" placeholder="—" readonly title="Estimated RAX will appear after the formula is learned"></label><button type="button" class="stats-row-button">${statsLabel}</button><button type="button" class="remove-claim-button" aria-label="Remove row">×</button>`;
  row._statsData={stats:entry?.stats||null,statsConfirmed:!!entry?.statsConfirmed,opponent:entry?.opponent||'',result:entry?.result||''};
  claimRows.appendChild(row);updateClaimEmptyState();refreshClaimRowTotals();
 }
@@ -821,11 +886,14 @@ function updateClaimEmptyState(){claimEmptyState.classList.toggle('hidden',claim
 function updateCardTypeUI(){
  const type=activeCardType();
  if(dateHelperCopy)dateHelperCopy.textContent=type==='current'
-  ? 'Current season cards use game dates. After games finish, enter base RAX and required stats.'
-  : 'OTD cards use historical claim dates. Enter base RAX; the app multiplies by the card multiplier and tracks the 2-claim-per-sport limit.';
- if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Game performances':'OTD claim history';
- if(claimSectionHelp)claimSectionHelp.textContent=type==='current'?'Enter base RAX after each game. Stats are required for completed current-card performances.':'Enter base OTD RAX. The app multiplies it by the card multiplier and adds booster estimates if used.';
+  ? 'Paste upcoming or completed game dates. After a completed game, enter base RAX and stats.'
+  : 'Paste historical OTD claim dates. The app applies the 2-claim-per-sport limit and the card OTD cap.';
+ if(boosterSection)boosterSection.hidden=type!=='current';
+ if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Current season performances':'OTD claim dates';
+ if(claimSectionHelp)claimSectionHelp.textContent=type==='current'?'Enter base RAX after each game. Completed performances with base RAX require stats. Boosters only apply here.':'Enter base OTD RAX. Total RAX = base × card multiplier, capped by the card level when a cap exists.';
  if(bulkPasteHelp)bulkPasteHelp.innerHTML=type==='current'?'Paste game dates, optionally with base RAX.':'Paste OTD claim dates, optionally with base RAX.';
+ const hint=document.getElementById('claimFormulaHint');
+ if(hint)hint.textContent=type==='current'?'Total RAX = Base RAX × Card Multiplier + Booster Estimate':'Total RAX = Base RAX × Card Multiplier, then limited by OTD cap when applicable';
  refreshClaimRowTotals();
 }
 function openStatsEditor(row){
@@ -872,7 +940,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:41,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:42,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -954,11 +1022,10 @@ multiplierInput.addEventListener('input',refreshClaimRowTotals);
 rarityInput.addEventListener('change',()=>{
  const auto=rarityMultipliers[rarityInput.value];
  if(auto){multiplierInput.value=auto;}
- else if(rarityInput.value.startsWith('Iconic') && (!multiplierInput.value || multiplierInput.value==='4')){multiplierInput.value=''; multiplierInput.placeholder='Enter Iconic multiplier';}
  refreshClaimRowTotals();
 });
-cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:collectBoosterSettings(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
-addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);findDatesButton.addEventListener('click',findDatesInApp);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
+cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:cardType==='current'?collectBoosterSettings():defaultBooster(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
+addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);if(findDatesButton)findDatesButton.addEventListener('click',findDatesInApp);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);scheduleCloudSave();balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 

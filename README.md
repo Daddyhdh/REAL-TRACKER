@@ -1,17 +1,19 @@
-# REAL TRACKER 4.1 Base RAX + Boosters
+# REAL TRACKER 4.2 Premium Smart Card Engine
 
-Adds:
-- Claim/performance rows now use Base RAX.
-- The app calculates Total RAX from Base RAX × card multiplier.
-- Booster section added to each card.
-- Booster multiplier input.
-- Sport-specific booster rate inputs for NFL, CFB, NBA, WNBA, CBB, MLB, FC, Golf, UFC, and NHL.
-- Stats modal now has sport-specific stat fields instead of only JSON notes.
-- Current season completed performances require stats before saving when base RAX is entered.
-- Booster estimate uses stats × RAX-per-stat rates × booster multiplier.
-- Formula Lab samples now use confirmed stats + base RAX.
+Changes:
+- Boosters are now Current Season only.
+- OTD cards ignore boosters.
+- Removed the visible "Find dates in app" button.
+- Cleaner date/Base RAX entry rows.
+- Rows now clearly show Date, Base RAX, Total RAX, Estimate, and Stats.
+- Current card completed performances still require stats when Base RAX is entered.
+- Added official multiplier values supplied by the user:
+  General 1x, Common 2x, Uncommon 3x, Rare 4x, Epic 10x,
+  Legendary 1-5, Mystic 1-10, Iconic 1-20.
+- Added OTD caps for Legendary and Mystic levels.
+- Premium UI polish.
+- Browser tab icon/home icon now uses the same REAL TRACKER logo style.
 
-Important:
-- Automatic online stats fetching is still not enabled. Users manually enter stats until a sports API is added.
-- Estimated RAX remains blank until enough confirmed samples exist.
-- Supabase login/cloud save remains unchanged.
+Formula:
+Current card total = Base RAX × Card Multiplier + Booster Estimate
+OTD total = Base RAX × Card Multiplier, capped when the rarity has an OTD cap

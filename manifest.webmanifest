@@ -1,10 +1,10 @@
 {
-  "name": "REAL TRACKER 4.1",
-  "short_name": "TRACKER",
+  "name": "REAL TRACKER 4.2",
+  "short_name": "REAL TRACKER",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#030303",
-  "theme_color": "#030303",
+  "background_color": "#020407",
+  "theme_color": "#04111f",
   "icons": [
     {
       "src": "icon-192.png",
