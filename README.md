@@ -1,14 +1,11 @@
-# REAL TRACKER 2.1 Visual Update
+# REAL TRACKER 2.2 Desktop Cleanup
 
-Actual app update, not a mockup.
+Fixes:
+- Removed desktop horizontal scrolling
+- Tightened desktop sidebar and logo sizing
+- Reduced dashboard clutter on desktop
+- Made dashboard cards more compact
+- Kept the mobile design from v2.1
+- Preserved seeded collection: 12 cards and 453 dated claims
 
-Includes:
-- New TRACKER logo asset based on the uploaded mark, with blue glow and "TRACKER" lockup
-- More REAL-style black / electric-blue UI
-- Sharper panels and linework
-- New OTD claim curve chart
-- New sport allocation live board
-- Existing collection data preserved: 12 cards and 453 dated claims
-- Same mobile/desktop responsive app
-
-Upload all extracted files to the root of the GitHub repository and commit to main.
+Upload all extracted files to the root of GitHub and commit to main.

@@ -171,3 +171,182 @@ body:before{
   .mobile-logo{width:210px;max-width:210px}
   .sport-tile-board{grid-template-columns:1fr}
 }
+
+
+/* REAL TRACKER 2.2 desktop cleanup */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  min-width: 0;
+}
+
+@media (min-width: 760px) {
+  #appShell {
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .desktop-sidebar {
+    width: 220px !important;
+    padding: 18px 12px !important;
+    overflow-x: hidden;
+  }
+
+  .tracker-logo-wide {
+    max-width: 196px !important;
+  }
+
+  .app-main {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .topbar {
+    padding: 18px 22px 12px !important;
+  }
+
+  .mobile-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .mobile-logo {
+    width: 170px !important;
+    max-width: 170px !important;
+  }
+
+  .page-label h1 {
+    font-size: 28px !important;
+  }
+
+  main {
+    width: 100%;
+    max-width: 1180px !important;
+    margin: 0 auto;
+    padding: 0 22px 32px !important;
+    overflow-x: hidden;
+  }
+
+  .desktop-hero-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  .visual-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px) !important;
+    align-items: stretch;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  .horizontal-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 10px;
+  }
+
+  .earner-card {
+    flex-basis: 160px !important;
+  }
+
+  .hero-card {
+    min-height: 185px !important;
+    padding: 20px !important;
+  }
+
+  .hero-value {
+    font-size: 38px !important;
+  }
+
+  .portfolio-snapshot {
+    padding: 18px !important;
+  }
+
+  .snapshot-number {
+    font-size: 31px !important;
+    margin-top: 16px !important;
+  }
+
+  .stat-card {
+    min-height: 104px !important;
+    padding: 14px !important;
+  }
+
+  .stat-label {
+    margin-top: 10px !important;
+  }
+
+  .stat-value {
+    font-size: 19px !important;
+  }
+
+  .line-chart {
+    height: 170px !important;
+  }
+
+  .sport-tile-board {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .sport-tile {
+    padding: 9px 10px !important;
+  }
+
+  .sport-tile strong {
+    font-size: 16px !important;
+  }
+
+  .section-heading {
+    margin-top: 22px !important;
+  }
+
+  .next-card, .claim-day, .panel {
+    padding: 14px !important;
+  }
+
+  .claim-row {
+    padding: 9px 10px !important;
+  }
+
+  .desktop-nav-item {
+    padding: 11px 10px !important;
+  }
+}
+
+@media (min-width: 1150px) {
+  main {
+    max-width: 1280px !important;
+  }
+
+  .desktop-hero-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr) !important;
+  }
+
+  .dashboard-columns {
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr) !important;
+  }
+}
+
+@media (min-width: 1500px) {
+  main {
+    max-width: 1380px !important;
+  }
+}
