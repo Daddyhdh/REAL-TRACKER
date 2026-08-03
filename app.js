@@ -1,10 +1,14 @@
 
-const collectionKey='realTrackerCollectionV5';
-const claimStateKey='realTrackerClaimStateV5';
+const collectionKey='realTracker20Collection';
+const claimStateKey='realTracker20ClaimState';
 
 // Explicit element references. This avoids Safari/iPhone relying on element IDs as global variables.
 
-const $ = id => document.getElementById(id);
+const $ = id => {
+  const el=document.getElementById(id);
+  if(!el) throw new Error('Missing required element: '+id);
+  return el;
+};
 const appShell = $('appShell');
 const sidebarBackup = $('sidebarBackup');
 const sidebarImport = $('sidebarImport');
@@ -130,7 +134,7 @@ function scanLegacyData(){
 
 let COLLECTION=[];
 let DATA={daily:[],cards:[],totals:{raw:0,collectible:0,lost:0}};
-let claimState=readFirstJson([claimStateKey,'realTrackerClaimStateV3','realOtdClaimStateV1'],{});
+let claimState=readFirstJson([claimStateKey,'realTrackerClaimStateV7','realTrackerClaimStateV6','realTrackerClaimStateV5','realTrackerClaimStateV4','realTrackerClaimStateV3','realOtdClaimStateV1'],{});
 let activeScreen='dashboard';
 let raxBalance=Number(localStorage.getItem('realTrackerRaxBalanceV1')||0);
 
@@ -239,6 +243,75 @@ function collectClaimEntries(multiplier){
  }
  return claims.sort((a,b)=>a.date.localeCompare(b.date));
 }
+
+function exportData(){
+  const payload={version:7,collection:COLLECTION,claimState,raxBalance};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='real-tracker-backup.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function importData(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const payload=JSON.parse(reader.result);
+      const cards=Array.isArray(payload)?payload:payload.collection;
+      if(!Array.isArray(cards)) throw new Error('No collection found in this file.');
+      COLLECTION=normalizeCards(cards);
+      if(payload.claimState && typeof payload.claimState==='object') claimState=payload.claimState;
+      if(payload.raxBalance!==undefined) raxBalance=Number(payload.raxBalance||0);
+      saveCollection();
+      localStorage.setItem(claimStateKey,JSON.stringify(claimState));
+      localStorage.setItem('realTrackerRaxBalanceV1',String(raxBalance));
+      renderAll();
+      showToast('Backup restored');
+    }catch(err){
+      alert('Could not restore that backup: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.addEventListener('click',event=>{
+  const nav=event.target.closest('[data-screen]');
+  if(nav){
+    event.preventDefault();
+    setScreen(nav.dataset.screen);
+    return;
+  }
+  const go=event.target.closest('[data-go]');
+  if(go){
+    event.preventDefault();
+    setScreen(go.dataset.go);
+    return;
+  }
+  const claim=event.target.closest('[data-claim-date]');
+  if(claim){
+    event.preventDefault();
+    toggleClaim(claim.dataset.claimDate);
+    return;
+  }
+  const chip=event.target.closest('.filter-chip');
+  if(chip){
+    event.preventDefault();
+    document.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('active'));
+    chip.classList.add('active');
+    renderCards();
+    return;
+  }
+  const edit=event.target.closest('[data-edit]');
+  if(edit){
+    event.preventDefault();
+    openModal(edit.dataset.edit);
+  }
+});
+
 claimSearch.addEventListener('input',renderClaims);sportFilter.addEventListener('change',renderClaims);cardSearch.addEventListener('input',renderCards);portfolioSearch.addEventListener('input',renderPortfolioTable);portfolioSort.addEventListener('change',renderPortfolioTable);
 resetButton.addEventListener('click',()=>{if(confirm('Reset all claim progress?')){claimState={};localStorage.removeItem(claimStateKey);renderAll();showToast('Progress reset')}});
 quickAddButton.addEventListener('click',()=>openModal());addCardButton.addEventListener('click',()=>openModal());closeModal.addEventListener('click',closeModalFn);cardModal.addEventListener('click',e=>{if(e.target===cardModal)closeModalFn()});
@@ -261,7 +334,7 @@ recoverButton.addEventListener('click',()=>{
 });
 
 Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Could not load collection data');return r.json()})]).then(([defaults])=>{
- const direct=readFirstJson([collectionKey,'realTrackerCollectionV5','realTrackerCollectionV4','realTrackerCollectionV3','realOtdCollectionV2','realOtdCollectionV1'],null);
+ const direct=readFirstJson([collectionKey,'realTrackerCollectionV7','realTrackerCollectionV6','realTrackerCollectionV5','realTrackerCollectionV4','realTrackerCollectionV3','realOtdCollectionV2','realOtdCollectionV1'],null);
  const legacy=scanLegacyData();
  const chosen=(Array.isArray(direct)&&direct.length?direct:(legacy.collection?legacy.collection.cards:defaults));
  COLLECTION=normalizeCards(chosen);
