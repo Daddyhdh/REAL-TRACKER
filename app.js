@@ -649,9 +649,17 @@ function hideLoginGate(){
   loginGate.setAttribute('aria-hidden','true');
   document.body.classList.remove('auth-gated');
 }
+
+function restoreGateIfNeeded(){
+  document.body.classList.remove('auth-modal-from-gate');
+  if(!currentUser && !hasPassedAuthGate())showLoginGate();
+}
+
 function openGateAuth(mode){
   setAuthMode(mode);
+  hideLoginGate();
   openAuthModal();
+  document.body.classList.add('auth-modal-from-gate');
 }
 
 function setAuthMode(mode){
@@ -1007,7 +1015,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:51,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:52,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1105,6 +1113,16 @@ authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuth()});
 loginTab.addEventListener('click',()=>setAuthMode('login'));
 signupTab.addEventListener('click',()=>setAuthMode('signup'));
 authForm.addEventListener('submit',handleAuthSubmit);
+
+if(gateLoginButton){
+  gateLoginButton.addEventListener('click',()=>openGateAuth('login'));
+  gateLoginButton.onclick=()=>openGateAuth('login');
+}
+if(gateSignupButton){
+  gateSignupButton.addEventListener('click',()=>openGateAuth('signup'));
+  gateSignupButton.onclick=()=>openGateAuth('signup');
+}
+
 forgotPasswordButton.addEventListener('click',forgotPassword);
 logoutButton.addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut()});
 syncNowButton.addEventListener('click',saveCloudData);
