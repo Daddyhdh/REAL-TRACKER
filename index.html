@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 2.5</title>
+  <title>REAL TRACKER 2.6</title>
 </head>
 <body>
 <div id="appShell">
@@ -165,9 +165,11 @@
           <label>Team <small>optional</small><input id="teamInput" placeholder="Example: Cowboys, Duke, Lakers" /></label>
         </div>
         <div class="ai-helper-buttons">
-          <button type="button" id="copyDatePromptButton" class="add-claim-button">Copy AI prompt</button>
+          <button type="button" id="findDatesButton" class="find-dates-button">Find dates in app</button>
+          <button type="button" id="copyDatePromptButton" class="add-claim-button secondary">Copy AI prompt</button>
           <button type="button" id="clearDatePasteButton" class="add-claim-button secondary">Clear paste box</button>
         </div>
+        <div id="aiDateStatus" class="ai-date-status" hidden></div>
         <label>Paste dates from AI or a schedule page
           <textarea id="dateOnlyPasteInput" rows="4" placeholder="2025-09-08\n2025-09-15\nSep 22\n10/06/2025"></textarea>
         </label>

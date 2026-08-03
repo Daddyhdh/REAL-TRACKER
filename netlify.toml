@@ -1,0 +1,7 @@
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/find-dates"
+  to = "/.netlify/functions/find-dates"
+  status = 200

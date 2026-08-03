@@ -78,8 +78,10 @@ const favoriteInput = $('favoriteInput');
 const notesInput = $('notesInput');
 const seasonInput = $('seasonInput');
 const teamInput = $('teamInput');
+const findDatesButton = $('findDatesButton');
 const copyDatePromptButton = $('copyDatePromptButton');
 const clearDatePasteButton = $('clearDatePasteButton');
+const aiDateStatus = $('aiDateStatus');
 const dateOnlyPasteInput = $('dateOnlyPasteInput');
 const importDateOnlyButton = $('importDateOnlyButton');
 const addClaimRowButton = $('addClaimRowButton');
@@ -326,6 +328,48 @@ async function copyDatePrompt(){
    window.prompt('Copy this prompt:',prompt);
  }
 }
+function setAiStatus(message,type='info'){
+ aiDateStatus.hidden=false;
+ aiDateStatus.textContent=message;
+ aiDateStatus.dataset.type=type;
+}
+async function findDatesInApp(){
+ const player=playerInput.value.trim();
+ const sport=sportInput.value;
+ const season=seasonInput.value.trim();
+ const team=teamInput.value.trim();
+ if(!player){alert('Enter the player name first.');return;}
+ if(!season){alert('Enter the season or year first. Example: 2025-26 or 2025');return;}
+ findDatesButton.disabled=true;
+ setAiStatus('Searching for official game/event dates… this can take a little bit.','loading');
+ try{
+   const response=await fetch('/api/find-dates',{
+     method:'POST',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({player,sport,season,team})
+   });
+   const data=await response.json().catch(()=>({error:'Lookup failed.'}));
+   if(!response.ok)throw new Error(data.error||'Lookup failed.');
+   const dates=Array.isArray(data.dates)?data.dates:[];
+   if(!dates.length)throw new Error('No dates were found. Try adding the team or making the season more specific.');
+   const existing=new Set([...claimRows.querySelectorAll('.claim-date-input')].map(x=>x.value).filter(Boolean));
+   let added=0;
+   dates.forEach(date=>{
+     if(date && !existing.has(date)){
+       addClaimEntry(date,'');
+       existing.add(date);
+       added++;
+     }
+   });
+   setAiStatus(`Found ${dates.length} dates. Added ${added} new claim rows. Source check: ${data.note||'review dates before saving.'}`,'success');
+   showToast(`Added ${added} dates`);
+ }catch(err){
+   setAiStatus(err.message,'error');
+   alert(err.message);
+ }finally{
+   findDatesButton.disabled=false;
+ }
+}
 function importBulkClaims(){
  const lines=bulkClaimInput.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
  if(!lines.length){showToast('Paste claim lines first');return;}
@@ -434,7 +478,7 @@ rarityInput.addEventListener('change',()=>{
  else if(rarityInput.value.startsWith('Iconic') && (!multiplierInput.value || multiplierInput.value==='4')){multiplierInput.value=''; multiplierInput.placeholder='Enter Iconic multiplier';}
 });
 cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier,marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
-addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
+addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);findDatesButton.addEventListener('click',findDatesInApp);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
