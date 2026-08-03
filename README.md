@@ -1,13 +1,20 @@
-# REAL TRACKER 5.3 Auth Modal Function Fix
-
-Fix:
-- Login gate buttons were calling openAuthModal(), but the app did not define that function.
-- This caused: ReferenceError: Can't find variable: openAuthModal
-- 5.3 adds the missing function/wrapper and a backup button binding.
-
-Keeps:
-- Login gate
-- Prompt regular season only / no preseason
-- Storage parse fix
-- Copy Prompt Helper
-- Clean Dates & Base RAX section
+{
+  "name": "REAL TRACKER 5.4",
+  "short_name": "REAL TRACKER",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#020407",
+  "theme_color": "#04111f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
