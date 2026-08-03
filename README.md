@@ -1,12 +1,19 @@
-# REAL TRACKER 2.7 Learning Mode
+# REAL TRACKER 2.8 Supabase Login + Cloud Sync
 
-Adds the foundation for the future RAX formula engine.
+Adds:
+- Supabase email/password sign up and login
+- Log out
+- Forgot password
+- Private cloud save using the public.user_data table
+- Auto-save to cloud after collection/progress/balance changes
+- Sync now button
+- Local backup still works
 
-Changes:
-- Claim rows now separate Actual RAX from Estimated RAX.
-- Estimated RAX stays blank by default.
-- Actual RAX is the only value used for portfolio/claim totals.
-- Formula Lab shows how many confirmed actual-RAX samples are saved.
-- Public starter still contains no owner's personal collection data.
+Setup already used:
+- Supabase URL and publishable key are embedded in app.js.
+- The user_data table must exist with RLS policies enabled.
 
-This version does not guess RAX. It prepares the app to learn from confirmed REAL results later.
+Important:
+- This uses only the publishable Supabase key, not service_role.
+- Do not add secret/service_role keys to GitHub.
+- This version still contains no owner's personal collection data.

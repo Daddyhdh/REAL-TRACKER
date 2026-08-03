@@ -1,6 +1,8 @@
 
 const collectionKey='realTrackerPublicCollectionV1';
 const claimStateKey='realTrackerPublicClaimStateV1';
+const SUPABASE_URL='https://coddlvolhivjlhckehxb.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_4sglRvv86Oy-be0V1_-HcQ_FaiSslUs';
 
 // Explicit element references. This avoids Safari/iPhone relying on element IDs as global variables.
 
@@ -98,6 +100,26 @@ const balanceForm = $('balanceForm');
 const raxBalanceInput = $('raxBalanceInput');
 const toast = $('toast');
 const bootError = $('bootError');
+const authModal = $('authModal');
+const closeAuthModal = $('closeAuthModal');
+const authTitle = $('authTitle');
+const authForm = $('authForm');
+const authEmail = $('authEmail');
+const authPassword = $('authPassword');
+const authSubmitButton = $('authSubmitButton');
+const loginTab = $('loginTab');
+const signupTab = $('signupTab');
+const forgotPasswordButton = $('forgotPasswordButton');
+const authMessage = $('authMessage');
+const openAuthButton = $('openAuthButton');
+const logoutButton = $('logoutButton');
+const syncNowButton = $('syncNowButton');
+const cloudDot = $('cloudDot');
+const cloudStatusText = $('cloudStatusText');
+const cloudSaveStatus = $('cloudSaveStatus');
+const manageCloudStatus = $('manageCloudStatus');
+const manageAuthButton = $('manageAuthButton');
+const manageSyncButton = $('manageSyncButton');
 
 
 function readFirstJson(keys, fallback){
@@ -149,6 +171,12 @@ let DATA={daily:[],cards:[],totals:{raw:0,collectible:0,lost:0}};
 let claimState=readFirstJson([claimStateKey,'realTrackerClaimStateV7','realTrackerClaimStateV6','realTrackerClaimStateV5','realTrackerClaimStateV4','realTrackerClaimStateV3','realOtdClaimStateV1'],{});
 let activeScreen='dashboard';
 let raxBalance=Number(localStorage.getItem('realTrackerPublicRaxBalanceV1')||0);
+let supabaseClient=null;
+let currentUser=null;
+let authMode='login';
+let cloudSuppress=false;
+let cloudSaveTimer=null;
+let cloudReady=false;
 
 const rarityOptions=[
  'Common','Rare','Epic',
@@ -171,7 +199,10 @@ const monthName=s=>dateObj(s).toLocaleDateString(undefined,{month:'long',year:'n
 const shortDate=s=>dateObj(s).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const monthDay=s=>({day:dateObj(s).toLocaleDateString(undefined,{day:'numeric'}),month:dateObj(s).toLocaleDateString(undefined,{month:'short'}).toUpperCase()});
 
-function saveCollection(){localStorage.setItem(collectionKey,JSON.stringify(COLLECTION))}
+function saveCollection(){
+ localStorage.setItem(collectionKey,JSON.stringify(COLLECTION));
+ scheduleCloudSave();
+}
 function recompute(){
  const rows=[];
  COLLECTION.filter(c=>c.active!==false).forEach(c=>{
@@ -240,8 +271,184 @@ function renderManage(){
 }
 function renderAll(){recompute();renderDashboard();renderClaims();renderCards();renderStats();renderManage();renderPortfolio()}
 function setScreen(screen){activeScreen=screen;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelector('#'+screen+'Screen').classList.add('active');document.querySelectorAll('[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));screenTitle.textContent={dashboard:'Dashboard',claims:'Claims',portfolio:'Portfolio',cards:'My Cards',manage:'Manage',stats:'Analytics'}[screen];window.scrollTo({top:0,behavior:'smooth'})}
-function toggleClaim(date){claimState[date]=claimState[date]==='claimed'?'pending':'claimed';localStorage.setItem(claimStateKey,JSON.stringify(claimState));renderAll();showToast(claimState[date]==='claimed'?'Claim added':'Claim removed')}
+function toggleClaim(date){claimState[date]=claimState[date]==='claimed'?'pending':'claimed';localStorage.setItem(claimStateKey,JSON.stringify(claimState));scheduleCloudSave();renderAll();showToast(claimState[date]==='claimed'?'Claim added':'Claim removed')}
 function showToast(t){toast.textContent=t;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
+
+function setCloudStatus(text, detail='', mode='offline'){
+ if(cloudStatusText)cloudStatusText.textContent=text;
+ if(cloudSaveStatus)cloudSaveStatus.textContent=detail;
+ if(manageCloudStatus)manageCloudStatus.textContent=detail || text;
+ if(cloudDot){cloudDot.className='cloud-dot '+mode;}
+ const signedIn=!!currentUser;
+ if(openAuthButton)openAuthButton.hidden=signedIn;
+ if(manageAuthButton)manageAuthButton.hidden=signedIn;
+ if(logoutButton)logoutButton.hidden=!signedIn;
+ if(syncNowButton)syncNowButton.hidden=!signedIn;
+ if(manageSyncButton)manageSyncButton.hidden=!signedIn;
+}
+function setAuthMessage(message,type='info'){
+ authMessage.hidden=!message;
+ authMessage.textContent=message||'';
+ authMessage.dataset.type=type;
+}
+function openAuth(mode='login'){
+ authMode=mode;
+ authModal.classList.add('open');
+ authModal.setAttribute('aria-hidden','false');
+ setAuthMode(mode);
+ setAuthMessage('');
+ setTimeout(()=>authEmail.focus(),60);
+}
+function closeAuth(){authModal.classList.remove('open');authModal.setAttribute('aria-hidden','true')}
+function setAuthMode(mode){
+ authMode=mode;
+ loginTab.classList.toggle('active',mode==='login');
+ signupTab.classList.toggle('active',mode==='signup');
+ authTitle.textContent=mode==='login'?'Log in':'Create account';
+ authSubmitButton.textContent=mode==='login'?'Log in':'Create account';
+ authPassword.autocomplete=mode==='login'?'current-password':'new-password';
+}
+function localSnapshot(){
+ return {
+   collection:COLLECTION,
+   claim_state:claimState,
+   rax_balance:Number(raxBalance||0),
+   settings:{version:'2.8',updatedFrom:'browser'}
+ };
+}
+function persistLocalFromCloud(data){
+ cloudSuppress=true;
+ COLLECTION=normalizeCards(Array.isArray(data.collection)?data.collection:[]);
+ claimState=(data.claim_state&&typeof data.claim_state==='object')?data.claim_state:{};
+ raxBalance=Number(data.rax_balance||0);
+ localStorage.setItem(collectionKey,JSON.stringify(COLLECTION));
+ localStorage.setItem(claimStateKey,JSON.stringify(claimState));
+ localStorage.setItem('realTrackerPublicRaxBalanceV1',String(raxBalance));
+ cloudSuppress=false;
+ renderAll();
+}
+function scheduleCloudSave(){
+ if(cloudSuppress||!currentUser||!supabaseClient)return;
+ clearTimeout(cloudSaveTimer);
+ if(cloudSaveStatus)cloudSaveStatus.textContent='Saving...';
+ cloudSaveTimer=setTimeout(()=>saveCloudData(),900);
+}
+async function saveCloudData(){
+ if(!currentUser||!supabaseClient)return;
+ try{
+   const payload=localSnapshot();
+   const {error}=await supabaseClient.from('user_data').upsert({
+     user_id:currentUser.id,
+     collection:payload.collection,
+     claim_state:payload.claim_state,
+     rax_balance:payload.rax_balance,
+     settings:payload.settings
+   },{onConflict:'user_id'});
+   if(error)throw error;
+   setCloudStatus('Cloud synced',`Saved as ${currentUser.email}`,'online');
+ }catch(err){
+   console.error(err);
+   setCloudStatus('Sync error',err.message||'Could not save to cloud','error');
+ }
+}
+async function loadCloudData(){
+ if(!currentUser||!supabaseClient)return;
+ try{
+   setCloudStatus('Cloud sync','Loading your account...','loading');
+   const {data,error}=await supabaseClient.from('user_data').select('*').eq('user_id',currentUser.id).maybeSingle();
+   if(error)throw error;
+   if(data){
+     persistLocalFromCloud(data);
+     setCloudStatus('Cloud synced',`Loaded ${currentUser.email}`,'online');
+   }else{
+     await saveCloudData();
+     setCloudStatus('Cloud synced',`Created save for ${currentUser.email}`,'online');
+   }
+ }catch(err){
+   console.error(err);
+   setCloudStatus('Sync error',err.message||'Could not load cloud data','error');
+ }
+}
+async function initSupabaseAuth(){
+ try{
+   if(!window.supabase||!SUPABASE_URL||!SUPABASE_PUBLISHABLE_KEY){
+     setCloudStatus('Local only','Cloud login is not configured yet.','offline');
+     return;
+   }
+   supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+   const {data}=await supabaseClient.auth.getSession();
+   currentUser=data.session?.user||null;
+   cloudReady=true;
+   if(currentUser){
+     setCloudStatus('Signed in',`Loading ${currentUser.email}...`,'loading');
+     await loadCloudData();
+   }else{
+     setCloudStatus('Local only','Sign in to sync across devices.','offline');
+   }
+   supabaseClient.auth.onAuthStateChange(async(event,session)=>{
+     currentUser=session?.user||null;
+     if(event==='SIGNED_IN'&&currentUser){
+       closeAuth();
+       await loadCloudData();
+       showToast('Signed in');
+     }
+     if(event==='SIGNED_OUT'){
+       currentUser=null;
+       setCloudStatus('Local only','Signed out. This device can still save locally.','offline');
+       renderAll();
+       showToast('Signed out');
+     }
+   });
+ }catch(err){
+   console.error(err);
+   setCloudStatus('Cloud error',err.message||'Supabase could not start','error');
+ }
+}
+async function handleAuthSubmit(event){
+ event.preventDefault();
+ if(!supabaseClient){setAuthMessage('Cloud login is not ready yet. Refresh and try again.','error');return;}
+ const email=authEmail.value.trim();
+ const password=authPassword.value;
+ if(!email||!password)return;
+ authSubmitButton.disabled=true;
+ setAuthMessage(authMode==='login'?'Logging in...':'Creating account...','info');
+ try{
+   if(authMode==='signup'){
+     const {data,error}=await supabaseClient.auth.signUp({email,password});
+     if(error)throw error;
+     if(data.session){
+       currentUser=data.user;
+       closeAuth();
+       await loadCloudData();
+       showToast('Account created');
+     }else{
+       setAuthMessage('Account created. Check your email to confirm, then log in.','success');
+     }
+   }else{
+     const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+     if(error)throw error;
+     currentUser=data.user;
+     closeAuth();
+     await loadCloudData();
+     showToast('Logged in');
+   }
+ }catch(err){
+   setAuthMessage(err.message||'Authentication failed.','error');
+ }finally{
+   authSubmitButton.disabled=false;
+ }
+}
+async function forgotPassword(){
+ if(!supabaseClient){setAuthMessage('Cloud login is not ready yet.','error');return;}
+ const email=authEmail.value.trim();
+ if(!email){setAuthMessage('Enter your email first, then tap forgot password.','error');authEmail.focus();return;}
+ try{
+   const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin});
+   if(error)throw error;
+   setAuthMessage('Password reset email sent.','success');
+ }catch(err){setAuthMessage(err.message||'Could not send reset email.','error');}
+}
+
 
 function addClaimEntry(date='',rax=''){
  const row=document.createElement('div');row.className='claim-entry-row';
@@ -403,7 +610,7 @@ function collectClaimEntries(multiplier){
 }
 
 function exportData(){
-  const payload={version:7,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:8,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -427,6 +634,7 @@ function importData(file){
       saveCollection();
       localStorage.setItem(claimStateKey,JSON.stringify(claimState));
       localStorage.setItem('realTrackerPublicRaxBalanceV1',String(raxBalance));
+      scheduleCloudSave();
       renderAll();
       showToast('Backup restored');
     }catch(err){
@@ -471,7 +679,7 @@ document.addEventListener('click',event=>{
 });
 
 claimSearch.addEventListener('input',renderClaims);sportFilter.addEventListener('change',renderClaims);cardSearch.addEventListener('input',renderCards);portfolioSearch.addEventListener('input',renderPortfolioTable);portfolioSort.addEventListener('change',renderPortfolioTable);
-resetButton.addEventListener('click',()=>{if(confirm('Reset all claim progress?')){claimState={};localStorage.removeItem(claimStateKey);renderAll();showToast('Progress reset')}});
+resetButton.addEventListener('click',()=>{if(confirm('Reset all claim progress?')){claimState={};localStorage.removeItem(claimStateKey);scheduleCloudSave();renderAll();showToast('Progress reset')}});
 quickAddButton.addEventListener('click',()=>openModal());addCardButton.addEventListener('click',()=>openModal());closeModal.addEventListener('click',closeModalFn);cardModal.addEventListener('click',e=>{if(e.target===cardModal)closeModalFn()});
 rarityInput.addEventListener('change',()=>{
  const auto=rarityMultipliers[rarityInput.value];
@@ -481,8 +689,20 @@ rarityInput.addEventListener('change',()=>{
 cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier,marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
 addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);findDatesButton.addEventListener('click',findDatesInApp);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
-exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
+exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);scheduleCloudSave();balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
+
+openAuthButton.addEventListener('click',()=>openAuth('login'));
+manageAuthButton.addEventListener('click',()=>openAuth('login'));
+closeAuthModal.addEventListener('click',closeAuth);
+authModal.addEventListener('click',e=>{if(e.target===authModal)closeAuth()});
+loginTab.addEventListener('click',()=>setAuthMode('login'));
+signupTab.addEventListener('click',()=>setAuthMode('signup'));
+authForm.addEventListener('submit',handleAuthSubmit);
+forgotPasswordButton.addEventListener('click',forgotPassword);
+logoutButton.addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut()});
+syncNowButton.addEventListener('click',saveCloudData);
+manageSyncButton.addEventListener('click',saveCloudData);
 
 recoverButton.addEventListener('click',async()=>{
   if(confirm('Reset this public tracker back to an empty starter collection?')){
@@ -492,6 +712,7 @@ recoverButton.addEventListener('click',async()=>{
     saveCollection();
     localStorage.setItem(claimStateKey,JSON.stringify(claimState));
     localStorage.setItem('realTrackerPublicRaxBalanceV1','0');
+    scheduleCloudSave();
     renderAll();
     showToast('Public starter reset');
   }
@@ -503,7 +724,7 @@ const oldRenderAllPublic = renderAll;
 renderAll = function(){
   oldRenderAllPublic();
   if(DATA && DATA.cards && DATA.cards.length===0){
-    const empty = '<div class="empty-state"><strong>No cards yet</strong>Add your first card in Manage, then enter claim dates and RAX amounts. Everything saves only on this device.</div>';
+    const empty = '<div class="empty-state"><strong>No cards yet</strong>Add your first card in Manage, then enter claim dates and RAX amounts. Sign in to save online, or keep using this device locally.</div>';
     ['nextClaimCard','topEarners','sportBreakdown','cardsGrid','manageList','portfolioTable','valueLeaders','allocationLegend','sportTileBoard'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.innerHTML=empty;
@@ -521,7 +742,7 @@ Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw
  localStorage.setItem(claimStateKey,JSON.stringify(claimState));
  rarityInput.innerHTML=rarityOptions.map(r=>`<option>${r}</option>`).join('');
  const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
- renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+ renderAll();initSupabaseAuth();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }).catch(err=>{console.error(err);bootError.hidden=false;bootError.textContent='REAL TRACKER could not start: '+err.message+' — refresh once or tap Recover old data after reopening.';});
 
 window.addEventListener('error',e=>{console.error(e.error||e.message);if(bootError){bootError.hidden=false;bootError.textContent='App error: '+(e.message||'Unknown error');}});

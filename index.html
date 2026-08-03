@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 2.7</title>
+  <title>REAL TRACKER 2.8</title>
 </head>
 <body>
 <div id="appShell">
@@ -26,6 +26,15 @@
       <button class="desktop-nav-item" data-screen="stats">▥ Analytics</button>
     </nav>
     <div class="sidebar-footer">
+      <div class="cloud-widget">
+        <div class="cloud-dot-row"><span id="cloudDot" class="cloud-dot offline"></span><strong id="cloudStatusText">Local only</strong></div>
+        <small id="cloudSaveStatus">Sign in to sync across devices.</small>
+        <div class="cloud-actions">
+          <button id="openAuthButton" class="sidebar-action cloud-main">Log in / Sign up</button>
+          <button id="syncNowButton" class="sidebar-action" hidden>Sync now</button>
+          <button id="logoutButton" class="sidebar-action" hidden>Log out</button>
+        </div>
+      </div>
       <button id="sidebarBackup" class="sidebar-action">⇩ Backup data</button>
       <label class="sidebar-action">⇧ Restore data<input id="sidebarImport" type="file" accept=".json" hidden /></label>
     </div>
@@ -121,6 +130,15 @@
         <div class="manage-hero"><div><div class="eyebrow">COLLECTION CONTROL</div><h2>Manage your cards</h2><p>Upgrade, add, archive, back up, or restore your collection.</p></div><button id="addCardButton" class="primary-small">+ Add card</button></div>
         <div class="logo-preview-card"><img src="tracker-logo-wide.png" alt="Tracker logo"><span>Custom TRACKER mark installed</span></div>
         <div class="formula-lab-card"><strong>Formula Lab</strong><span id="formulaSampleCount">0 actual RAX samples saved</span><small>Estimated RAX will stay empty until the app has enough confirmed REAL results to build a reliable formula.</small></div>
+        <div class="cloud-sync-card">
+          <strong>Cloud Sync</strong>
+          <span id="manageCloudStatus">Local only</span>
+          <small>Create an account to save your collection online and use it on phone and desktop.</small>
+          <div class="cloud-sync-buttons">
+            <button type="button" id="manageAuthButton" class="primary-small">Log in / Sign up</button>
+            <button type="button" id="manageSyncButton" class="primary-small ghost" hidden>Save to cloud</button>
+          </div>
+        </div>
         <div class="manage-actions"><button id="exportButton" class="action-tile"><span>⇩</span><strong>Backup</strong><small>Download your data</small></button><label class="action-tile"><span>⇧</span><strong>Restore</strong><small>Import a backup</small><input id="importInput" type="file" accept=".json" hidden /></label><button id="recoverButton" class="action-tile"><span>↺</span><strong>Recover old data</strong><small>Scan older app versions</small></button></div><div id="manageList" class="manage-list"></div>
       </section>
 
@@ -200,6 +218,29 @@
     </form>
   </div>
 </div>
+
+<div class="modal" id="authModal" aria-hidden="true">
+  <div class="modal-sheet compact-sheet auth-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div><div class="eyebrow">CLOUD ACCOUNT</div><h2 id="authTitle">Log in</h2></div>
+      <button id="closeAuthModal" class="icon-button">×</button>
+    </div>
+    <div class="auth-tabs">
+      <button type="button" id="loginTab" class="active">Log in</button>
+      <button type="button" id="signupTab">Sign up</button>
+    </div>
+    <form id="authForm">
+      <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
+      <label>Password<input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" /></label>
+      <button id="authSubmitButton" type="submit" class="save-button full-button">Log in</button>
+    </form>
+    <button id="forgotPasswordButton" type="button" class="text-button auth-link">Forgot password?</button>
+    <div id="authMessage" class="auth-message" hidden></div>
+    <div class="auth-note">Your collection saves to your own private account. Local backup still works too.</div>
+  </div>
+</div>
+
 <div class="modal" id="balanceModal" aria-hidden="true"><div class="modal-sheet compact-sheet"><div class="modal-handle"></div><div class="modal-head"><h2>RAX balance</h2><button id="closeBalanceModal" class="icon-button">×</button></div><form id="balanceForm"><label>Current available RAX<input id="raxBalanceInput" type="number" min="0" step="1" /></label><button type="submit" class="save-button full-button">Save balance</button></form></div></div>
-<div class="toast" id="toast"></div><div id="bootError" class="boot-error" hidden></div><script src="app.js"></script>
+<div class="toast" id="toast"></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script>
 </body></html>

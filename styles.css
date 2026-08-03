@@ -521,3 +521,75 @@ html, body {
   }
   .estimated-rax-input{padding:9px 5px}
 }
+
+/* REAL TRACKER 2.8 Supabase login + cloud sync */
+.cloud-widget{
+  border:1px solid rgba(19,140,255,.25);
+  border-radius:14px;
+  background:#030507;
+  padding:12px;
+  margin-bottom:10px;
+}
+.cloud-dot-row{display:flex;align-items:center;gap:8px;color:#fff;font-size:13px}
+.cloud-dot{width:10px;height:10px;border-radius:999px;background:#7b8493;box-shadow:0 0 10px rgba(123,132,147,.3)}
+.cloud-dot.online{background:#28f7ae;box-shadow:0 0 14px rgba(40,247,174,.55)}
+.cloud-dot.loading{background:#56c7ff;box-shadow:0 0 14px rgba(86,199,255,.55)}
+.cloud-dot.error{background:#ff5d68;box-shadow:0 0 14px rgba(255,93,104,.55)}
+.cloud-dot.offline{background:#7b8493}
+#cloudSaveStatus{display:block;color:var(--muted);font-size:11px;line-height:1.35;margin:7px 0 9px}
+.cloud-actions{display:grid;gap:7px}
+.sidebar-action.cloud-main{background:linear-gradient(180deg,#148cff,#07569b)!important;color:white!important;border-color:rgba(86,199,255,.55)!important}
+.cloud-sync-card{
+  display:grid;
+  gap:6px;
+  margin:13px 0;
+  padding:14px;
+  border:1px solid rgba(19,140,255,.25);
+  border-radius:14px;
+  background:linear-gradient(180deg,#030507,#05080d);
+}
+.cloud-sync-card strong{color:#fff;font-size:16px}
+.cloud-sync-card span{color:var(--cyan);font-size:13px;font-weight:900}
+.cloud-sync-card small{color:var(--muted);line-height:1.4}
+.cloud-sync-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.primary-small.ghost{background:#071b2d!important;color:#dff5ff!important}
+.auth-sheet{max-width:430px}
+.auth-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:4px 0 12px;
+}
+.auth-tabs button{
+  border:1px solid rgba(19,140,255,.28);
+  border-radius:12px;
+  background:#030507;
+  color:var(--muted);
+  padding:10px;
+  font-weight:900;
+}
+.auth-tabs button.active{
+  color:white;
+  border-color:rgba(86,199,255,.55);
+  background:#071b2d;
+  box-shadow:0 0 18px rgba(20,140,255,.18);
+}
+.auth-link{margin:10px auto 0;display:block}
+.auth-message{
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(19,140,255,.26);
+  background:#030507;
+  color:var(--muted);
+  font-size:12px;
+}
+.auth-message[data-type="success"]{color:#9be7ff;border-color:rgba(86,199,255,.38)}
+.auth-message[data-type="error"]{color:#ff9a9a;border-color:rgba(255,90,90,.35)}
+.auth-note{
+  margin-top:12px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.4;
+  text-align:center;
+}
