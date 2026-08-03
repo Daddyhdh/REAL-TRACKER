@@ -181,7 +181,12 @@ const cloudMiniText = $('cloudMiniText');
 
 function readFirstJson(keys, fallback){
   for(const key of keys){
-    try{const value=localStorage.getItem(key);if(value){const parsed=JSON.parse(value);if(parsed!==null)return parsed;}}catch(e){}
+    try{
+      const value=localStorage.getItem(key);
+      if(!looksLikeJson(value))continue;
+      const parsed=JSON.parse(value);
+      if(parsed!==null)return parsed;
+    }catch(e){}
   }
   return fallback;
 }
@@ -1015,7 +1020,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:52,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:54,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1181,17 +1186,59 @@ renderAll = function(){
   }
 };
 
-Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Could not load collection data');return r.json()})]).then(([defaults])=>{
- const direct=readFirstJson([collectionKey],null);
- const chosen=Array.isArray(direct)?direct:defaults;
- COLLECTION=normalizeCards(chosen);
- saveCollection();
- localStorage.setItem(claimStateKey,JSON.stringify(claimState));
- rarityInput.innerHTML=rarityOptions.map(r=>`<option>${r}</option>`).join('');
- const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
- showLoginGate();renderAll();applyCloudWidgetPreference();initSupabaseAuth();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
-}).catch(err=>{console.error(err);bootError.hidden=false;bootError.textContent='REAL TRACKER could not start: '+err.message+' — refresh once or tap Recover old data after reopening.';});
+async function startApp(){
+ try{
+   // Do not depend on collection.json. Old service-worker/browser caches can return bad script text here.
+   // Public starter should safely start empty, then local/cloud data can load.
+   const direct=readFirstJson([collectionKey],null);
+   const chosen=Array.isArray(direct)?direct:[];
+   COLLECTION=normalizeCards(chosen);
+   saveCollection();
+   localStorage.setItem(claimStateKey,JSON.stringify(claimState));
+   rarityInput.innerHTML=rarityOptions.map(r=>`<option>${r}</option>`).join('');
+   const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];
+   cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
+   showLoginGate();
+   renderAll();
+   applyCloudWidgetPreference();
+   initSupabaseAuth();
+   if('serviceWorker' in navigator){
+     try{
+       const regs=await navigator.serviceWorker.getRegistrations();
+       await Promise.all(regs.map(r=>r.unregister()));
+       if(window.caches){
+         const keys=await caches.keys();
+         await Promise.all(keys.map(k=>caches.delete(k)));
+       }
+     }catch(e){}
+     navigator.serviceWorker.register('sw.js?v=54',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+   }
+ }catch(err){
+   console.error(err);
+   bootError.hidden=false;
+   bootError.textContent='REAL TRACKER could not start: '+err.message;
+ }
+}
+startApp();
 
 window.addEventListener('error',e=>{console.error(e.error||e.message);if(bootError){bootError.hidden=false;bootError.textContent='App error: '+(e.message||'Unknown error');}});
 
 setTimeout(()=>document.querySelectorAll('.modal:not(.open)').forEach(m=>m.setAttribute('aria-hidden','true')),0);
+
+
+function openAuthModal(){
+  if(!authModal)return;
+  authModal.classList.add('open');
+  authModal.setAttribute('aria-hidden','false');
+  if(authEmail)authEmail.focus();
+}
+
+
+
+// 5.3 hard backup for first-time auth gate buttons
+setTimeout(()=>{
+  const gl=document.getElementById('gateLoginButton');
+  const gs=document.getElementById('gateSignupButton');
+  if(gl)gl.onclick=()=>openGateAuth('login');
+  if(gs)gs.onclick=()=>openGateAuth('signup');
+},0);
