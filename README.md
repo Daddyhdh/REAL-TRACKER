@@ -1,13 +1,17 @@
-# REAL TRACKER 5.0 Storage Parse Fix
+# REAL TRACKER 5.1 Login Gate + Prompt Fix
 
-Fixes:
-- Startup crash caused by JSON.parse reading a non-JSON localStorage value like "exports.ha..."
-- Recovery scan now ignores anything that does not look like REAL TRACKER JSON.
-- Keeps users signed in once Supabase loads normally.
-- Keeps Copy Prompt Helper.
-- Keeps no in-app date finder.
-- Keeps clean Dates & Base RAX section.
-- Cache-busts app.js/styles.css to v=50.
+Adds:
+- First-time login/sign-up gate before users can access the app.
+- Works on desktop and mobile.
+- Once a user signs in once on that device, the gate will not pop up again.
+- Copy Prompt Helper now says:
+  - regular season only
+  - no preseason games
+  - no scrimmages/exhibitions/unofficial events
 
-Upload all extracted files to GitHub root and commit to main.
-Then open your site with ?v=50 once.
+Keeps:
+- Storage parse fix from 5.0
+- Copy Prompt Helper
+- No in-app date finder/API call
+- Clean Dates & Base RAX section
+- Boosters Current Season only

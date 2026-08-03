@@ -159,6 +159,10 @@ const loginTab = $('loginTab');
 const signupTab = $('signupTab');
 const forgotPasswordButton = $('forgotPasswordButton');
 const authMessage = $('authMessage');
+const loginGate = $('loginGate');
+const gateLoginButton = $('gateLoginButton');
+const gateSignupButton = $('gateSignupButton');
+const authGateSeenKey = 'realTrackerAuthGateSeenV1';
 const openAuthButton = $('openAuthButton');
 const logoutButton = $('logoutButton');
 const syncNowButton = $('syncNowButton');
@@ -625,6 +629,31 @@ function openAuth(mode='login'){
  setTimeout(()=>authEmail.focus(),60);
 }
 function closeAuth(){authModal.classList.remove('open');authModal.setAttribute('aria-hidden','true')}
+
+function hasPassedAuthGate(){
+  return localStorage.getItem(authGateSeenKey)==='1';
+}
+function markAuthGatePassed(){
+  localStorage.setItem(authGateSeenKey,'1');
+  hideLoginGate();
+}
+function showLoginGate(){
+  if(!loginGate || hasPassedAuthGate())return;
+  loginGate.hidden=false;
+  loginGate.setAttribute('aria-hidden','false');
+  document.body.classList.add('auth-gated');
+}
+function hideLoginGate(){
+  if(!loginGate)return;
+  loginGate.hidden=true;
+  loginGate.setAttribute('aria-hidden','true');
+  document.body.classList.remove('auth-gated');
+}
+function openGateAuth(mode){
+  setAuthMode(mode);
+  openAuthModal();
+}
+
 function setAuthMode(mode){
  authMode=mode;
  loginTab.classList.toggle('active',mode==='login');
@@ -711,7 +740,7 @@ async function initSupabaseAuth(){
      setCloudStatus('Local only','Sign in to sync across devices.','offline');
    }
    supabaseClient.auth.onAuthStateChange(async(event,session)=>{
-     currentUser=session?.user||null;
+     currentUser=session?.user||null;if(currentUser)markAuthGatePassed();else showLoginGate();
      if(event==='SIGNED_IN'&&currentUser){
        closeAuth();
        await loadCloudData();
@@ -755,7 +784,7 @@ async function handleAuthSubmit(event){
      currentUser=data.user;
      closeAuth();
      await loadCloudData();
-     showToast('Logged in');
+     markAuthGatePassed();showToast('Logged in');
    }
  }catch(err){
    setAuthMessage(err.message||'Authentication failed.','error');
@@ -853,7 +882,7 @@ function buildDatePrompt(){
  const season=seasonInput.value.trim()||'[SEASON/YEAR]';
  const team=teamInput.value.trim();
  const teamLine=team ? `Team/context: ${team}\n` : '';
- return `Find every official game/event date that ${player} played in for ${sport} during ${season}.\n${teamLine}Card type: ${activeCardType()==='current'?'current season performance tracking':'OTD historical claims'}\nReturn ONLY the dates, one per line, in YYYY-MM-DD format. Do not include bullets, scores, opponents, stats, explanations, or extra text.`;
+ return `Find every official game/event date that ${player} played in for ${sport} during ${season}.\n${teamLine}Card type: ${activeCardType()==='current'?'current season performance tracking':'OTD historical claims'}\nOnly include regular season games/events. Do NOT include preseason games, scrimmages, exhibitions, or unofficial events.\nReturn ONLY the dates, one per line, in YYYY-MM-DD format. Do not include bullets, scores, opponents, stats, explanations, or extra text.`;
 }
 async function copyDatePrompt(){
  const prompt=buildDatePrompt();
@@ -978,7 +1007,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:50,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:51,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1142,7 +1171,7 @@ Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw
  localStorage.setItem(claimStateKey,JSON.stringify(claimState));
  rarityInput.innerHTML=rarityOptions.map(r=>`<option>${r}</option>`).join('');
  const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
- renderAll();applyCloudWidgetPreference();initSupabaseAuth();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+ showLoginGate();renderAll();applyCloudWidgetPreference();initSupabaseAuth();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }).catch(err=>{console.error(err);bootError.hidden=false;bootError.textContent='REAL TRACKER could not start: '+err.message+' — refresh once or tap Recover old data after reopening.';});
 
 window.addEventListener('error',e=>{console.error(e.error||e.message);if(bootError){bootError.hidden=false;bootError.textContent='App error: '+(e.message||'Unknown error');}});

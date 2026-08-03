@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="REAL TRACKER" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico?v=50" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=50" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=50" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=50" />
-              <link rel="stylesheet" href="styles.css?v=50" />
-  <title>REAL TRACKER 5.0</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=51" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=51" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=51" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=51" />
+              <link rel="stylesheet" href="styles.css?v=51" />
+  <title>REAL TRACKER 5.1</title>
 </head>
 <body>
 <div id="appShell">
@@ -349,5 +349,19 @@ Sep 22, 140"></textarea>
   <button type="button" id="importDateOnlyButton"></button>
 </div>
 
-<div class="toast" id="toast"></div><div id="runtimeError" class="runtime-error" hidden></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=50"></script>
+
+<div id="loginGate" class="login-gate" hidden aria-hidden="true">
+  <div class="login-gate-card">
+    <img src="icon-192.png?v=51" alt="REAL TRACKER" />
+    <div class="eyebrow">REAL TRACKER</div>
+    <h1>Sign in to start tracking</h1>
+    <p>Create or log into your cloud account before using the tracker. After you sign in once on this device, this screen will not pop up again.</p>
+    <div class="login-gate-actions">
+      <button type="button" id="gateLoginButton" class="save-button">Log in</button>
+      <button type="button" id="gateSignupButton" class="add-claim-button secondary">Create account</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div><div id="runtimeError" class="runtime-error" hidden></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=51"></script>
 </body></html>

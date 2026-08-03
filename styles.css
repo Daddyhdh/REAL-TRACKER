@@ -1451,3 +1451,76 @@ html, body {
 .runtime-error,.boot-error{
   max-width:min(1100px,calc(100vw - 28px));
 }
+
+/* REAL TRACKER 5.1 first-time login gate */
+body.auth-gated{
+  overflow:hidden!important;
+}
+.login-gate{
+  position:fixed;
+  inset:0;
+  z-index:99998;
+  display:grid;
+  place-items:center;
+  padding:22px;
+  background:
+    radial-gradient(circle at 18% 10%,rgba(86,199,255,.18),transparent 28%),
+    radial-gradient(circle at 85% 20%,rgba(19,140,255,.13),transparent 32%),
+    rgba(0,0,0,.82);
+  backdrop-filter:blur(16px);
+}
+.login-gate[hidden]{
+  display:none!important;
+}
+.login-gate-card{
+  width:min(520px,100%);
+  border:1px solid rgba(86,199,255,.28);
+  border-radius:28px;
+  background:
+    linear-gradient(180deg,rgba(8,22,36,.96),rgba(2,6,10,.98));
+  box-shadow:0 30px 110px rgba(0,0,0,.62),0 0 60px rgba(19,140,255,.14);
+  padding:28px;
+  text-align:center;
+}
+.login-gate-card img{
+  width:92px;
+  height:92px;
+  border-radius:22px;
+  object-fit:cover;
+  box-shadow:0 12px 34px rgba(0,0,0,.42);
+  margin-bottom:14px;
+}
+.login-gate-card h1{
+  color:white;
+  margin:6px 0 8px;
+  font-size:clamp(30px,6vw,44px);
+  letter-spacing:-.04em;
+}
+.login-gate-card p{
+  margin:0 auto 22px;
+  color:#b7c8d9;
+  max-width:430px;
+  line-height:1.45;
+  font-size:15px;
+}
+.login-gate-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.login-gate-actions button{
+  min-height:52px;
+  font-size:16px;
+}
+@media(max-width:560px){
+  .login-gate{
+    padding:14px;
+  }
+  .login-gate-card{
+    padding:22px;
+    border-radius:24px;
+  }
+  .login-gate-actions{
+    grid-template-columns:1fr;
+  }
+}
