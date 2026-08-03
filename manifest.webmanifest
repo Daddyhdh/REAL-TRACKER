@@ -1,10 +1,10 @@
 {
   "name": "REAL TRACKER",
-  "short_name": "REAL TRACKER",
+  "short_name": "REAL",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#05070b",
-  "theme_color": "#05070b",
+  "background_color": "#030303",
+  "theme_color": "#030303",
   "icons": [
     {
       "src": "icon-192.png",

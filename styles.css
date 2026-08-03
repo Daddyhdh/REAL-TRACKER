@@ -66,3 +66,26 @@ body{background:#000!important}
 .donut{background:conic-gradient(#009dff 0deg,#111 0deg)!important}
 .modal-sheet{background:#050505!important;border-radius:10px 10px 0 0!important;border:1px solid #242424!important}
 @media(min-width:760px){.modal-sheet{border-radius:8px!important}.desktop-nav-item{border-radius:6px!important}}
+
+
+/* v6: clean REAL-inspired creative interface */
+:root{--bg:#030303;--panel:#0a0a0b;--panel2:#101114;--line:#20242a;--blue:#009dff;--cyan:#4cc7ff;--text:#f5f5f7;--muted:#8d9199}
+body{background:linear-gradient(180deg,#030303 0,#05070a 55%,#000 100%)!important}
+.real-logo{width:38px;height:38px;color:#f8f8f8;display:grid;place-items:center;flex:0 0 auto}.real-logo svg{width:100%;height:100%}.mobile-brand-row{display:flex;align-items:center;gap:11px}.brand .real-logo{width:42px;height:42px;color:#009dff}
+.topbar{border-bottom:1px solid #15181d!important}.topbar:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#009dff 45%,transparent);opacity:.55}
+.hero-card{background:linear-gradient(135deg,#071018,#050506 58%,#030303)!important;border:1px solid #123a55!important;border-radius:14px!important}.hero-card:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 45%,rgba(0,157,255,.08) 46%,transparent 47%);pointer-events:none}
+.portfolio-snapshot,.manage-hero{background:linear-gradient(145deg,#0b0d10,#050505)!important;border:1px solid #252b31!important;border-radius:14px!important}
+.stat-card,.kpi-panel,.panel,.next-card,.claim-day,.collection-card,.manage-row,.action-tile,.sport-item,.earner-card,.stats-row{border-radius:12px!important;background:linear-gradient(180deg,#0d0f12,#070708)!important;border:1px solid #22272d!important}
+.stat-card{border-top-color:#3a424b!important}.stat-card .stat-icon{border:1px solid #244b63;background:#07131b!important}.stat-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:#009dff}
+.collection-card{border-top:2px solid #009dff!important}.collection-card:hover,.earner-card:hover,.manage-row:hover{border-color:#009dff!important;transform:translateY(-1px)}
+.claim-button,.save-button,.primary-small{background:#009dff!important;color:#001018!important;border:1px solid #52c5ff!important;border-radius:8px!important;font-weight:950!important}.claim-button.claimed{background:#d8f2ff!important}
+.icon-button{border-radius:8px!important;background:#090a0c!important;border:1px solid #2d333a!important}.icon-button:hover{border-color:#009dff!important;color:#009dff}
+.bottom-nav{border-radius:14px!important;background:rgba(6,7,9,.98)!important}.nav-item.active{background:#081723!important;color:#4cc7ff!important;box-shadow:inset 0 0 0 1px #17435d}
+.desktop-nav-item.active{box-shadow:inset 2px 0 0 #009dff;background:#08141d!important}.desktop-nav-item:hover{color:#fff;border-color:#2f3942}
+.search-box,.filter-select,.filter-chip,.table-tools input,.table-tools select,#cardForm input,#cardForm select,#cardForm textarea,#balanceForm input{border-radius:8px!important;background:#07080a!important;border-color:#292e34!important}.search-box:focus-within,#cardForm input:focus,#cardForm select:focus,#cardForm textarea:focus{border-color:#009dff!important;box-shadow:0 0 0 2px rgba(0,157,255,.12)}
+.progress-track,.sport-bar{height:6px!important;background:#15181c!important}.progress-fill,.sport-fill{background:linear-gradient(90deg,#007ac2,#4cc7ff)!important}
+.date-square{border-color:#155274!important;color:#fff}.total-pill,.rank-badge,.claim-summary-pill{color:#4cc7ff!important;border-color:#15435c!important;background:#07131b!important}
+.modal-sheet{background:#08090b!important;border:1px solid #2b3036!important}.form-section{border-radius:10px!important;background:#0b0c0e!important}.claim-entry-row{border-radius:8px!important}
+.action-tile{min-height:122px;transition:.16s}.action-tile:hover{border-color:#009dff!important}.action-tile span{color:#4cc7ff!important}
+.boot-error{position:fixed;left:12px;right:12px;bottom:112px;z-index:120;background:#29070c;color:#ffdfe4;border:1px solid #ff5368;padding:14px;border-radius:10px;font-size:12px;line-height:1.4}
+@media(min-width:760px){.mobile-brand-row .real-logo{display:none}.manage-actions{grid-template-columns:repeat(3,230px)!important}}

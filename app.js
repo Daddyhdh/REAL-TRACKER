@@ -4,12 +4,128 @@ const claimStateKey='realTrackerClaimStateV5';
 
 // Explicit element references. This avoids Safari/iPhone relying on element IDs as global variables.
 
+const $ = id => document.getElementById(id);
+const appShell = $('appShell');
+const sidebarBackup = $('sidebarBackup');
+const sidebarImport = $('sidebarImport');
+const screenTitle = $('screenTitle');
+const quickAddButton = $('quickAddButton');
+const resetButton = $('resetButton');
+const dashboardScreen = $('dashboardScreen');
+const claimedAmount = $('claimedAmount');
+const progressFill = $('progressFill');
+const progressPercent = $('progressPercent');
+const remainingAmount = $('remainingAmount');
+const portfolioValue = $('portfolioValue');
+const snapshotOtd = $('snapshotOtd');
+const snapshotCards = $('snapshotCards');
+const snapshotLost = $('snapshotLost');
+const todayAmount = $('todayAmount');
+const claimedDays = $('claimedDays');
+const totalOtd = $('totalOtd');
+const cardCount = $('cardCount');
+const nextClaimCard = $('nextClaimCard');
+const sportBreakdown = $('sportBreakdown');
+const topEarners = $('topEarners');
+const claimsScreen = $('claimsScreen');
+const claimsRemaining = $('claimsRemaining');
+const claimSearch = $('claimSearch');
+const sportFilter = $('sportFilter');
+const claimsFeed = $('claimsFeed');
+const portfolioScreen = $('portfolioScreen');
+const editBalanceButton = $('editBalanceButton');
+const portfolioCollectionValue = $('portfolioCollectionValue');
+const raxBalanceValue = $('raxBalanceValue');
+const portfolioGrandTotal = $('portfolioGrandTotal');
+const portfolioOtdRemaining = $('portfolioOtdRemaining');
+const portfolioDonut = $('portfolioDonut');
+const donutTotal = $('donutTotal');
+const allocationLegend = $('allocationLegend');
+const valueLeaders = $('valueLeaders');
+const portfolioSearch = $('portfolioSearch');
+const portfolioSort = $('portfolioSort');
+const portfolioTable = $('portfolioTable');
+const cardsScreen = $('cardsScreen');
+const cardSearch = $('cardSearch');
+const cardFilters = $('cardFilters');
+const cardsGrid = $('cardsGrid');
+const manageScreen = $('manageScreen');
+const addCardButton = $('addCardButton');
+const exportButton = $('exportButton');
+const importInput = $('importInput');
+const recoverButton = $('recoverButton');
+const manageList = $('manageList');
+const statsScreen = $('statsScreen');
+const seasonRing = $('seasonRing');
+const ringPercent = $('ringPercent');
+const statsCards = $('statsCards');
+const statsSportList = $('statsSportList');
+const cardModal = $('cardModal');
+const modalTitle = $('modalTitle');
+const closeModal = $('closeModal');
+const cardForm = $('cardForm');
+const cardId = $('cardId');
+const playerInput = $('playerInput');
+const sportInput = $('sportInput');
+const rarityInput = $('rarityInput');
+const multiplierInput = $('multiplierInput');
+const marketValueInput = $('marketValueInput');
+const favoriteInput = $('favoriteInput');
+const notesInput = $('notesInput');
+const addClaimRowButton = $('addClaimRowButton');
+const claimRows = $('claimRows');
+const claimEmptyState = $('claimEmptyState');
+const archiveButton = $('archiveButton');
+const balanceModal = $('balanceModal');
+const closeBalanceModal = $('closeBalanceModal');
+const balanceForm = $('balanceForm');
+const raxBalanceInput = $('raxBalanceInput');
+const toast = $('toast');
+const bootError = $('bootError');
+
 
 function readFirstJson(keys, fallback){
   for(const key of keys){
     try{const value=localStorage.getItem(key);if(value){const parsed=JSON.parse(value);if(parsed!==null)return parsed;}}catch(e){}
   }
   return fallback;
+}
+function looksLikeCardArray(value){
+  return Array.isArray(value) && value.length && value.every(x=>x && typeof x==='object' && ('player' in x || 'name' in x));
+}
+function normalizeCards(cards){
+  return cards.map((c,index)=>({
+    id:c.id || String(c.player||c.name||('card-'+index)).toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+    player:c.player || c.name || 'Unknown player',
+    sport:c.sport || c.league || 'NFL',
+    rarity:c.rarity || 'Rare',
+    multiplier:Number(c.multiplier || rarityMultipliers?.[c.rarity] || 1),
+    marketValue:Number(c.marketValue || c.value || 0),
+    favorite:!!c.favorite,
+    notes:c.notes || '',
+    active:c.active!==false,
+    claims:Array.isArray(c.claims)?c.claims.map(x=>({date:x.date,base:Number(x.base ?? x.rax ?? 0)})).filter(x=>x.date):[]
+  }));
+}
+function scanLegacyData(){
+  const candidates=[]; const states=[];
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i); let parsed;
+    try{parsed=JSON.parse(localStorage.getItem(key));}catch(e){continue;}
+    const arrays=[];
+    if(looksLikeCardArray(parsed)) arrays.push(parsed);
+    if(parsed && typeof parsed==='object' && looksLikeCardArray(parsed.collection)) arrays.push(parsed.collection);
+    arrays.forEach(cards=>{
+      const score=cards.length*20+cards.reduce((n,c)=>n+(Array.isArray(c.claims)?c.claims.length:0)*3+(Number(c.marketValue||c.value||0)>0?5:0),0);
+      candidates.push({key,cards,score});
+    });
+    if(parsed && !Array.isArray(parsed) && typeof parsed==='object'){
+      const vals=Object.values(parsed); if(vals.some(v=>v==='claimed'||v==='pending'||v==='missed')) states.push({key,state:parsed,score:vals.filter(v=>v==='claimed').length});
+      if(parsed.claimState && typeof parsed.claimState==='object') states.push({key:key+':claimState',state:parsed.claimState,score:Object.values(parsed.claimState).filter(v=>v==='claimed').length});
+    }
+  }
+  candidates.sort((a,b)=>b.score-a.score); states.sort((a,b)=>b.score-a.score);
+  return {collection:candidates[0]||null,claimState:states[0]||null,candidates};
 }
 
 let COLLECTION=[];
@@ -132,12 +248,28 @@ addClaimRowButton.addEventListener('click',()=>addClaimEntry());claimRows.addEve
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
-Promise.all([fetch('collection.json').then(r=>r.json())]).then(([defaults])=>{
- const stored=readFirstJson([collectionKey,'realTrackerCollectionV3','realOtdCollectionV2'],null);
- COLLECTION=(Array.isArray(stored)&&stored.length?stored:defaults).map(c=>({...c,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||'',claims:Array.isArray(c.claims)?c.claims:[]}));
+
+recoverButton.addEventListener('click',()=>{
+  const legacy=scanLegacyData();
+  if(!legacy.collection){alert('No older card data was found on this device.');return;}
+  const count=legacy.collection.cards.length;
+  if(confirm(`Found ${count} cards in older saved data (${legacy.collection.key}). Restore them now?`)){
+    COLLECTION=normalizeCards(legacy.collection.cards);
+    if(legacy.claimState) claimState=legacy.claimState.state;
+    saveCollection();localStorage.setItem(claimStateKey,JSON.stringify(claimState));renderAll();showToast('Old data recovered');
+  }
+});
+
+Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Could not load collection data');return r.json()})]).then(([defaults])=>{
+ const direct=readFirstJson([collectionKey,'realTrackerCollectionV5','realTrackerCollectionV4','realTrackerCollectionV3','realOtdCollectionV2','realOtdCollectionV1'],null);
+ const legacy=scanLegacyData();
+ const chosen=(Array.isArray(direct)&&direct.length?direct:(legacy.collection?legacy.collection.cards:defaults));
+ COLLECTION=normalizeCards(chosen);
  saveCollection();
  localStorage.setItem(claimStateKey,JSON.stringify(claimState));
  rarityInput.innerHTML=Object.keys(rarityMultipliers).map(r=>`<option>${r}</option>`).join('');
  const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
- renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update());
-});
+ renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+}).catch(err=>{console.error(err);bootError.hidden=false;bootError.textContent='REAL TRACKER could not start: '+err.message+' — refresh once or tap Recover old data after reopening.';});
+
+window.addEventListener('error',e=>{console.error(e.error||e.message);if(bootError){bootError.hidden=false;bootError.textContent='App error: '+(e.message||'Unknown error');}});
