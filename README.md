@@ -1,15 +1,12 @@
-# REAL TRACKER 4.3 UI Cleanup
+# REAL TRACKER 4.4 Click Fix + Clean UI
 
 Fixes:
-- Removed the entire Date Finder/Game Date Helper section from the website.
-- Cleaned up the Dates & Base RAX section.
-- Row entry now shows only what users need: Date, Base RAX, Card Total, Stats for current cards, and Delete.
-- Added a simple 3-step helper for entering dates and Base RAX.
-- Moved bulk paste into a collapsible "Paste multiple dates at once" section.
-- Boosters remain Current Season only.
+- Fixes the “nothing is clickable” issue by guarding removed Date Finder JavaScript and stopping hidden modals from intercepting clicks.
+- Fully removes the Date Finder/Game Date Helper section.
+- Rebuilds the Dates & Base RAX section into a cleaner, simpler flow.
+- Uses the exact mobile app icon file (`icon-192.png`) for the browser tab icon.
+- Keeps Boosters only on Current Season cards.
 - OTD cards ignore boosters.
-- Added favicon.ico and cache-busted favicon links so the browser tab uses the REAL TRACKER logo style.
-- Added stronger premium UI polish.
 
-Browser note:
-After upload, hard refresh. If the tab icon still looks old, close the tab, clear site data, or wait for browser favicon cache to update.
+Upload all extracted files to GitHub root and commit to main.
+After Netlify publishes, hard refresh. For favicon changes, close/reopen the tab or clear site data because browsers cache favicons aggressively.

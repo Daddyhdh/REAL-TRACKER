@@ -8,8 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="REAL TRACKER" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=44" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=44" />
       <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 4.3</title>
+  <title>REAL TRACKER 4.4</title>
 </head>
 <body>
 <div id="appShell">
@@ -233,17 +235,20 @@
         <div id="boosterRatesGrid" class="booster-rates-grid"></div>
       </section>
 
-<section class="form-section claim-editor-section">
-        <div class="claim-editor-head">
-          <div><div class="form-section-title" id="claimSectionTitle">Performance / claim rows</div><small id="claimSectionHelp">Enter base RAX. The app multiplies it by the card multiplier and adds booster estimates.</small></div>
+<section class="form-section claim-editor-section clean-claim-editor">
+        <div class="claim-editor-head clean-claim-head">
+          <div>
+            <div class="form-section-title" id="claimSectionTitle">Dates & Base RAX</div>
+            <small id="claimSectionHelp">Add each date, enter the Base RAX shown in REAL, and the app calculates the card total.</small>
+          </div>
           <div class="claim-editor-buttons">
             <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add date</button>
             <button type="button" id="addFiveClaimsButton" class="add-claim-button secondary">+ 5 dates</button>
           </div>
         </div>
         <div class="claim-help-steps">
-          <div><strong>1</strong><span>Pick the game/OTD date</span></div>
-          <div><strong>2</strong><span>Type the Base RAX from REAL</span></div>
+          <div><strong>1</strong><span>Choose the date</span></div>
+          <div><strong>2</strong><span>Enter Base RAX</span></div>
           <div><strong>3</strong><span>Total calculates automatically</span></div>
         </div>
         <div id="claimFormulaHint" class="claim-formula-hint">Total RAX = Base RAX × Card Multiplier</div>
