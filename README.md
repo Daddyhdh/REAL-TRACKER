@@ -1,12 +1,13 @@
-# REAL TRACKER 4.4 Click Fix + Clean UI
+# REAL TRACKER 4.5 Click Fix + Logo Fix
 
 Fixes:
-- Fixes the “nothing is clickable” issue by guarding removed Date Finder JavaScript and stopping hidden modals from intercepting clicks.
-- Fully removes the Date Finder/Game Date Helper section.
-- Rebuilds the Dates & Base RAX section into a cleaner, simpler flow.
-- Uses the exact mobile app icon file (`icon-192.png`) for the browser tab icon.
-- Keeps Boosters only on Current Season cards.
+- Fixes the actual click-breaking JavaScript error from removing the date helper.
+- Removes the Date Finder/Game Date Helper UI completely.
+- Cache-busts app.js/styles.css so the broken cached version is not reused.
+- Rebuilds Dates & Base RAX into a cleaner entry flow.
+- Uses the uploaded home-screen logo screenshot as favicon.ico, favicon-32.png, icon-192.png, and icon-512.png.
+- Boosters remain Current Season only.
 - OTD cards ignore boosters.
 
 Upload all extracted files to GitHub root and commit to main.
-After Netlify publishes, hard refresh. For favicon changes, close/reopen the tab or clear site data because browsers cache favicons aggressively.
+After Netlify publishes, hard refresh. For the tab icon, close/reopen the tab or clear site data because favicon cache can stick.
