@@ -741,8 +741,8 @@ async function forgotPassword(){
 
 function addClaimEntry(date='',base='',entry=null){
  const row=document.createElement('div');row.className='claim-entry-row premium-claim-row';
- const statsLabel=entry?.statsConfirmed?'Stats ✓':(entry?.stats?'Review stats':'Add stats');
- row.innerHTML=`<label class="claim-field date-field"><span>Date</span><input class="claim-date-input" type="date" value="${date}"></label><label class="claim-field"><span>Base RAX</span><input class="claim-base-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" value="${base}"></label><label class="claim-field total-field"><span>Total RAX</span><input class="claim-total-output" type="text" value="" placeholder="0" readonly title="Base RAX × card multiplier + booster estimate"></label><label class="claim-field est-field"><span>Est.</span><input class="estimated-rax-input" type="text" value="" placeholder="—" readonly title="Estimated RAX will appear after the formula is learned"></label><button type="button" class="stats-row-button">${statsLabel}</button><button type="button" class="remove-claim-button" aria-label="Remove row">×</button>`;
+ const statsLabel=entry?.statsConfirmed?'Stats saved':(entry?.stats?'Review stats':'Add stats');
+ row.innerHTML=`<label class="claim-field date-field"><span>Date</span><input class="claim-date-input" type="date" value="${date}"></label><label class="claim-field base-field"><span>Base RAX</span><input class="claim-base-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" value="${base}"></label><label class="claim-field total-field"><span>Card total</span><input class="claim-total-output" type="text" value="" placeholder="0" readonly title="Base RAX × multiplier, plus booster if current card"></label><button type="button" class="stats-row-button">${statsLabel}</button><button type="button" class="remove-claim-button" aria-label="Remove row">×</button>`;
  row._statsData={stats:entry?.stats||null,statsConfirmed:!!entry?.statsConfirmed,opponent:entry?.opponent||'',result:entry?.result||''};
  claimRows.appendChild(row);updateClaimEmptyState();refreshClaimRowTotals();
 }
@@ -784,7 +784,7 @@ function parseFlexibleClaimLine(line){
  return {date,rax};
 }
 function importDateOnlyList(){
- const lines=dateOnlyPasteInput.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ if(!dateOnlyPasteInput)return; const lines=dateOnlyPasteInput.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
  if(!lines.length){showToast('Paste dates first');return;}
  try{
    const dates=[];
@@ -828,6 +828,7 @@ async function copyDatePrompt(){
  }
 }
 function setAiStatus(message,type='info'){
+ if(!aiDateStatus)return;
  aiDateStatus.hidden=false;
  aiDateStatus.textContent=message;
  aiDateStatus.dataset.type=type;
@@ -886,10 +887,10 @@ function updateClaimEmptyState(){claimEmptyState.classList.toggle('hidden',claim
 function updateCardTypeUI(){
  const type=activeCardType();
  if(dateHelperCopy)dateHelperCopy.textContent=type==='current'
-  ? 'Paste upcoming or completed game dates. After a completed game, enter base RAX and stats.'
-  : 'Paste historical OTD claim dates. The app applies the 2-claim-per-sport limit and the card OTD cap.';
+  ? 'Add upcoming or completed game dates. After a completed game, enter base RAX and stats.'
+  : 'Add historical OTD claim dates. The app applies the 2-claim-per-sport limit and the card OTD cap.';
  if(boosterSection)boosterSection.hidden=type!=='current';
- if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Current season performances':'OTD claim dates';
+ if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Current game dates & Base RAX':'OTD claim dates & Base RAX';
  if(claimSectionHelp)claimSectionHelp.textContent=type==='current'?'Enter base RAX after each game. Completed performances with base RAX require stats. Boosters only apply here.':'Enter base OTD RAX. Total RAX = base × card multiplier, capped by the card level when a cap exists.';
  if(bulkPasteHelp)bulkPasteHelp.innerHTML=type==='current'?'Paste game dates, optionally with base RAX.':'Paste OTD claim dates, optionally with base RAX.';
  const hint=document.getElementById('claimFormulaHint');
@@ -940,7 +941,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:42,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:43,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1025,7 +1026,7 @@ rarityInput.addEventListener('change',()=>{
  refreshClaimRowTotals();
 });
 cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:cardType==='current'?collectBoosterSettings():defaultBooster(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
-addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);if(findDatesButton)findDatesButton.addEventListener('click',findDatesInApp);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
+addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);if(importDateOnlyButton)importDateOnlyButton.addEventListener('click',importDateOnlyList);if(findDatesButton)if(findDatesButton)findDatesButton.addEventListener('click',findDatesInApp);if(copyDatePromptButton)copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);scheduleCloudSave();balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
@@ -1059,7 +1060,7 @@ statsForm.addEventListener('submit',e=>{
    result:statsResultInput.value.trim()
  };
  const btn=editingStatsRow.querySelector('.stats-row-button');
- if(btn)btn.textContent=statsConfirmedInput.checked?'✓':(hasEnteredStats(parsed)?'Review':'Stats');
+ if(btn)btn.textContent=statsConfirmedInput.checked?'Stats saved':(hasEnteredStats(parsed)?'Review stats':'Add stats');
  refreshClaimRowTotals();
  closeStatsEditor();
  showToast('Stats saved in row');

@@ -8,10 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="REAL TRACKER" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 4.1</title>
+      <link rel="stylesheet" href="styles.css" />
+  <title>REAL TRACKER 4.3</title>
 </head>
 <body>
 <div id="appShell">
@@ -235,38 +233,31 @@
         <div id="boosterRatesGrid" class="booster-rates-grid"></div>
       </section>
 
-      <section class="form-section ai-date-section">
-        <div class="form-section-title">Game Date Helper <span class="beta-pill">SMART</span></div>
-        <p class="helper-copy" id="dateHelperCopy">Current cards use game dates for performance reviews. OTD cards use historical claim dates. Shared date lookup can be connected through Supabase later.</p>
-        <div class="ai-helper-buttons">
-          <button type="button" id="findDatesButton" class="find-dates-button">Find dates</button>
-          <button type="button" id="copyDatePromptButton" class="add-claim-button secondary">Copy date prompt</button>
-          <button type="button" id="clearDatePasteButton" class="add-claim-button secondary">Clear paste box</button>
-        </div>
-        <div id="aiDateStatus" class="ai-date-status" hidden></div>
-        <label>Paste dates from a schedule, AI response, or another source
-          <textarea id="dateOnlyPasteInput" rows="4" placeholder="2025-09-08\n2025-09-15\nSep 22\n10/06/2025"></textarea>
-        </label>
-        <button type="button" id="importDateOnlyButton" class="import-claims-button">Add dates to rows</button>
-      </section>
-
-      <section class="form-section claim-editor-section">
+<section class="form-section claim-editor-section">
         <div class="claim-editor-head">
           <div><div class="form-section-title" id="claimSectionTitle">Performance / claim rows</div><small id="claimSectionHelp">Enter base RAX. The app multiplies it by the card multiplier and adds booster estimates.</small></div>
           <div class="claim-editor-buttons">
-            <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add row</button>
-            <button type="button" id="addFiveClaimsButton" class="add-claim-button secondary">+ 5 rows</button>
+            <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add date</button>
+            <button type="button" id="addFiveClaimsButton" class="add-claim-button secondary">+ 5 dates</button>
           </div>
         </div>
-        <div class="quick-claim-import">
-          <label>Fast paste <small id="bulkPasteHelp">Paste lines like <b>2025-08-16, 250</b> or <b>Aug 16 250</b></small>
-            <textarea id="bulkClaimInput" rows="3" placeholder="2025-08-16, 250\nAug 24 150\n9/12/2025 420"></textarea>
-          </label>
-          <button type="button" id="importClaimsButton" class="import-claims-button">Import pasted rows</button>
+        <div class="claim-help-steps">
+          <div><strong>1</strong><span>Pick the game/OTD date</span></div>
+          <div><strong>2</strong><span>Type the Base RAX from REAL</span></div>
+          <div><strong>3</strong><span>Total calculates automatically</span></div>
         </div>
-        <div class="claim-column-labels learning-labels"><span>Date</span><span>Base RAX</span><span>Total</span><span>Est.</span><span>Stats</span><span></span></div>
+        <div id="claimFormulaHint" class="claim-formula-hint">Total RAX = Base RAX × Card Multiplier</div>
         <div id="claimRows" class="claim-entry-list smart-claim-list"></div>
-        <div id="claimEmptyState" class="claim-empty-state">No dates added yet. You can still save the card and add rows later.</div>
+        <div id="claimEmptyState" class="claim-empty-state">No dates added yet. Tap “+ Add date” to start.</div>
+        <details class="quick-claim-import clean-bulk-import">
+          <summary>Paste multiple dates at once</summary>
+          <label><span id="bulkPasteHelp">One per line. You can include Base RAX after the date.</span>
+            <textarea id="bulkClaimInput" rows="3" placeholder="2025-09-08, 120
+2025-09-15, 95
+Sep 22, 140"></textarea>
+          </label>
+          <button type="button" id="importClaimsButton" class="import-claims-button">Import dates</button>
+        </details>
       </section>
 
       <div class="modal-actions"><button type="button" id="archiveButton" class="danger-button">Archive</button><button type="submit" class="save-button">Save changes</button></div>

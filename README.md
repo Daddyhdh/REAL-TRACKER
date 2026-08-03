@@ -1,19 +1,15 @@
-# REAL TRACKER 4.2 Premium Smart Card Engine
+# REAL TRACKER 4.3 UI Cleanup
 
-Changes:
-- Boosters are now Current Season only.
+Fixes:
+- Removed the entire Date Finder/Game Date Helper section from the website.
+- Cleaned up the Dates & Base RAX section.
+- Row entry now shows only what users need: Date, Base RAX, Card Total, Stats for current cards, and Delete.
+- Added a simple 3-step helper for entering dates and Base RAX.
+- Moved bulk paste into a collapsible "Paste multiple dates at once" section.
+- Boosters remain Current Season only.
 - OTD cards ignore boosters.
-- Removed the visible "Find dates in app" button.
-- Cleaner date/Base RAX entry rows.
-- Rows now clearly show Date, Base RAX, Total RAX, Estimate, and Stats.
-- Current card completed performances still require stats when Base RAX is entered.
-- Added official multiplier values supplied by the user:
-  General 1x, Common 2x, Uncommon 3x, Rare 4x, Epic 10x,
-  Legendary 1-5, Mystic 1-10, Iconic 1-20.
-- Added OTD caps for Legendary and Mystic levels.
-- Premium UI polish.
-- Browser tab icon/home icon now uses the same REAL TRACKER logo style.
+- Added favicon.ico and cache-busted favicon links so the browser tab uses the REAL TRACKER logo style.
+- Added stronger premium UI polish.
 
-Formula:
-Current card total = Base RAX × Card Multiplier + Booster Estimate
-OTD total = Base RAX × Card Multiplier, capped when the rarity has an OTD cap
+Browser note:
+After upload, hard refresh. If the tab icon still looks old, close the tab, clear site data, or wait for browser favicon cache to update.
