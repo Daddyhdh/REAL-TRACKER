@@ -1,4 +1,20 @@
 
+window.addEventListener('error',event=>{
+ const box=document.getElementById('runtimeError')||document.getElementById('bootError');
+ if(box){
+   box.hidden=false;
+   box.innerHTML='<strong>App error</strong><br>'+String(event.message||'Unknown error')+'<br><small>'+String(event.filename||'')+':'+String(event.lineno||'')+'</small>';
+ }
+});
+window.addEventListener('unhandledrejection',event=>{
+ const box=document.getElementById('runtimeError')||document.getElementById('bootError');
+ if(box){
+   box.hidden=false;
+   box.innerHTML='<strong>App error</strong><br>'+String(event.reason?.message||event.reason||'Unknown promise error');
+ }
+});
+
+
 const collectionKey='realTrackerPublicCollectionV1';
 const claimStateKey='realTrackerPublicClaimStateV1';
 const SUPABASE_URL='https://coddlvolhivjlhckehxb.supabase.co';
@@ -888,10 +904,10 @@ function updateClaimEmptyState(){claimEmptyState.classList.toggle('hidden',claim
 function updateCardTypeUI(){
  const type=activeCardType();
  if(dateHelperCopy)dateHelperCopy.textContent=type==='current'
-  ? 'Add upcoming or completed game dates. After a completed game, enter base RAX and stats.'
-  : 'Add historical OTD claim dates. The app applies the 2-claim-per-sport limit and the card OTD cap.';
+  ? 'Paste upcoming or completed game dates. After a completed game, enter base RAX and stats.'
+  : 'Paste historical OTD claim dates. The app applies the 2-claim-per-sport limit and the card OTD cap.';
  if(boosterSection)boosterSection.hidden=type!=='current';
- if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Current game dates & Base RAX':'OTD claim dates & Base RAX';
+ if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Current season performances':'OTD claim dates';
  if(claimSectionHelp)claimSectionHelp.textContent=type==='current'?'Enter base RAX after each game. Completed performances with base RAX require stats. Boosters only apply here.':'Enter base OTD RAX. Total RAX = base × card multiplier, capped by the card level when a cap exists.';
  if(bulkPasteHelp)bulkPasteHelp.innerHTML=type==='current'?'Paste game dates, optionally with base RAX.':'Paste OTD claim dates, optionally with base RAX.';
  const hint=document.getElementById('claimFormulaHint');
@@ -920,7 +936,7 @@ function closeStatsEditor(){
 }
 
 function openModal(id=null){
- const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';const type=c?.cardType||'otd';cardTypeCurrent.checked=type==='current';cardTypeOtd.checked=type!=='current';updateCardTypeUI();rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';seasonInput.value=c?.season||'';teamInput.value=c?.team||'';if(dateOnlyPasteInput)dateOnlyPasteInput.value='';claimRows.innerHTML='';
+ const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';const type=c?.cardType||'otd';cardTypeCurrent.checked=type==='current';cardTypeOtd.checked=type!=='current';updateCardTypeUI();rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';seasonInput.value=c?.season||'';teamInput.value=c?.team||'';if(dateOnlyPasteInput)if(dateOnlyPasteInput)dateOnlyPasteInput.value='';claimRows.innerHTML='';
  const multiplier=Number(c?.multiplier||multiplierInput.value||1);(c?.claims||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>addClaimEntry(x.date,Number(x.base||0),x));
  updateClaimEmptyState();archiveButton.style.display=c?'block':'none';archiveButton.textContent=c?.active===false?'Restore':'Archive';
 }
@@ -942,7 +958,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:45,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:46,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1027,7 +1043,7 @@ rarityInput.addEventListener('change',()=>{
  refreshClaimRowTotals();
 });
 cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:cardType==='current'?collectBoosterSettings():defaultBooster(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
-addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);if(importDateOnlyButton)importDateOnlyButton.addEventListener('click',importDateOnlyList);if(findDatesButton)findDatesButton.addEventListener('click',findDatesInApp);if(copyDatePromptButton)copyDatePromptButton.addEventListener('click',copyDatePrompt);if(clearDatePasteButton)clearDatePasteButton.addEventListener('click',()=>{if(dateOnlyPasteInput)dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
+addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);if(importDateOnlyButton)importDateOnlyButton.addEventListener('click',importDateOnlyList);if(findDatesButton)if(findDatesButton)findDatesButton.addEventListener('click',findDatesInApp);if(copyDatePromptButton)copyDatePromptButton.addEventListener('click',copyDatePrompt);if(clearDatePasteButton)clearDatePasteButton.addEventListener('click',()=>{if(dateOnlyPasteInput)if(dateOnlyPasteInput)dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);scheduleCloudSave();balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
@@ -1061,7 +1077,7 @@ statsForm.addEventListener('submit',e=>{
    result:statsResultInput.value.trim()
  };
  const btn=editingStatsRow.querySelector('.stats-row-button');
- if(btn)btn.textContent=statsConfirmedInput.checked?'Stats saved':(hasEnteredStats(parsed)?'Review stats':'Add stats');
+ if(btn)btn.textContent=statsConfirmedInput.checked?'✓':(hasEnteredStats(parsed)?'Review':'Stats');
  refreshClaimRowTotals();
  closeStatsEditor();
  showToast('Stats saved in row');
@@ -1109,3 +1125,5 @@ Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw
 }).catch(err=>{console.error(err);bootError.hidden=false;bootError.textContent='REAL TRACKER could not start: '+err.message+' — refresh once or tap Recover old data after reopening.';});
 
 window.addEventListener('error',e=>{console.error(e.error||e.message);if(bootError){bootError.hidden=false;bootError.textContent='App error: '+(e.message||'Unknown error');}});
+
+setTimeout(()=>document.querySelectorAll('.modal:not(.open)').forEach(m=>m.setAttribute('aria-hidden','true')),0);
