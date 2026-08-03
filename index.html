@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 3.0</title>
+  <title>REAL TRACKER 3.1</title>
 </head>
 <body>
 <div id="appShell">
@@ -26,7 +26,8 @@
       <button class="desktop-nav-item" data-screen="stats">▥ Analytics</button>
     </nav>
     <div class="sidebar-footer">
-      <div class="cloud-widget">
+      <div id="cloudWidget" class="cloud-widget">
+        <button id="dismissCloudWidget" class="cloud-dismiss" title="Hide cloud panel" aria-label="Hide cloud panel">×</button>
         <div class="cloud-dot-row"><span id="cloudDot" class="cloud-dot offline"></span><strong id="cloudStatusText">Local only</strong></div>
         <small id="cloudSaveStatus">Sign in to sync across devices.</small>
         <div class="cloud-actions">
@@ -35,6 +36,7 @@
           <button id="logoutButton" class="sidebar-action" hidden>Log out</button>
         </div>
       </div>
+      <button id="cloudMiniChip" class="cloud-mini-chip" hidden><span id="cloudMiniDot" class="cloud-dot offline"></span><strong id="cloudMiniText">Cloud</strong></button>
       <button id="sidebarBackup" class="sidebar-action">⇩ Backup data</button>
       <label class="sidebar-action">⇧ Restore data<input id="sidebarImport" type="file" accept=".json" hidden /></label>
     </div>

@@ -120,6 +120,11 @@ const cloudSaveStatus = $('cloudSaveStatus');
 const manageCloudStatus = $('manageCloudStatus');
 const manageAuthButton = $('manageAuthButton');
 const manageSyncButton = $('manageSyncButton');
+const cloudWidget = $('cloudWidget');
+const dismissCloudWidget = $('dismissCloudWidget');
+const cloudMiniChip = $('cloudMiniChip');
+const cloudMiniDot = $('cloudMiniDot');
+const cloudMiniText = $('cloudMiniText');
 
 
 function readFirstJson(keys, fallback){
@@ -177,6 +182,7 @@ let authMode='login';
 let cloudSuppress=false;
 let cloudSaveTimer=null;
 let cloudReady=false;
+let cloudWidgetCollapsed=localStorage.getItem('realTrackerCloudPanelDismissed')==='1';
 
 const rarityOptions=[
  'Common','Rare','Epic',
@@ -274,11 +280,30 @@ function setScreen(screen){activeScreen=screen;document.querySelectorAll('.scree
 function toggleClaim(date){claimState[date]=claimState[date]==='claimed'?'pending':'claimed';localStorage.setItem(claimStateKey,JSON.stringify(claimState));scheduleCloudSave();renderAll();showToast(claimState[date]==='claimed'?'Claim added':'Claim removed')}
 function showToast(t){toast.textContent=t;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
 
+
+function applyCloudWidgetPreference(){
+ if(!cloudWidget||!cloudMiniChip)return;
+ cloudWidget.hidden=cloudWidgetCollapsed;
+ cloudMiniChip.hidden=!cloudWidgetCollapsed;
+}
+function collapseCloudWidget(){
+ cloudWidgetCollapsed=true;
+ localStorage.setItem('realTrackerCloudPanelDismissed','1');
+ applyCloudWidgetPreference();
+}
+function expandCloudWidget(){
+ cloudWidgetCollapsed=false;
+ localStorage.setItem('realTrackerCloudPanelDismissed','0');
+ applyCloudWidgetPreference();
+}
 function setCloudStatus(text, detail='', mode='offline'){
  if(cloudStatusText)cloudStatusText.textContent=text;
  if(cloudSaveStatus)cloudSaveStatus.textContent=detail;
  if(manageCloudStatus)manageCloudStatus.textContent=detail || text;
  if(cloudDot){cloudDot.className='cloud-dot '+mode;}
+ if(cloudMiniDot){cloudMiniDot.className='cloud-dot '+mode;}
+ if(cloudMiniText){cloudMiniText.textContent=mode==='online'?'Synced':mode==='error'?'Sync error':mode==='loading'?'Syncing':'Cloud';}
+ applyCloudWidgetPreference();
  const signedIn=!!currentUser;
  if(openAuthButton)openAuthButton.hidden=signedIn;
  if(manageAuthButton)manageAuthButton.hidden=signedIn;
@@ -703,6 +728,8 @@ forgotPasswordButton.addEventListener('click',forgotPassword);
 logoutButton.addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut()});
 syncNowButton.addEventListener('click',saveCloudData);
 manageSyncButton.addEventListener('click',saveCloudData);
+dismissCloudWidget.addEventListener('click',collapseCloudWidget);
+cloudMiniChip.addEventListener('click',expandCloudWidget);
 
 recoverButton.addEventListener('click',async()=>{
   if(confirm('Reset this public tracker back to an empty starter collection?')){
@@ -742,7 +769,7 @@ Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw
  localStorage.setItem(claimStateKey,JSON.stringify(claimState));
  rarityInput.innerHTML=rarityOptions.map(r=>`<option>${r}</option>`).join('');
  const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
- renderAll();initSupabaseAuth();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+ renderAll();applyCloudWidgetPreference();initSupabaseAuth();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 }).catch(err=>{console.error(err);bootError.hidden=false;bootError.textContent='REAL TRACKER could not start: '+err.message+' — refresh once or tap Recover old data after reopening.';});
 
 window.addEventListener('error',e=>{console.error(e.error||e.message);if(bootError){bootError.hidden=false;bootError.textContent='App error: '+(e.message||'Unknown error');}});

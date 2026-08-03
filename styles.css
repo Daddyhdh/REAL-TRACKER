@@ -875,3 +875,50 @@ html, body {
     max-height:calc(100dvh - 20px)!important;
   }
 }
+
+/* REAL TRACKER 3.1 dismissible cloud panel */
+.cloud-widget{
+  position:relative;
+}
+.cloud-dismiss{
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(86,199,255,.25);
+  border-radius:9px;
+  background:#07101a;
+  color:#9fb5ca;
+  font-weight:950;
+  cursor:pointer;
+}
+.cloud-dismiss:hover{
+  color:#fff;
+  border-color:rgba(86,199,255,.55);
+  background:#09233c;
+}
+.cloud-mini-chip{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(19,140,255,.28);
+  border-radius:14px;
+  background:#030507;
+  color:#fff;
+  padding:11px 12px;
+  margin-bottom:10px;
+  cursor:pointer;
+  font-weight:900;
+  text-align:left;
+}
+.cloud-mini-chip:hover{
+  border-color:rgba(86,199,255,.55);
+  background:#071b2d;
+}
+.cloud-mini-chip strong{
+  font-size:13px;
+}

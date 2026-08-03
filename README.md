@@ -1,9 +1,9 @@
-# REAL TRACKER 3.0 Auth Button Fix
+# REAL TRACKER 3.1 Dismiss Cloud Panel
 
-Fixes:
-- Login/sign-up button being pushed off-screen
-- Auth modal now scrolls inside the card if needed
-- Smaller, cleaner mobile/short-screen auth layout
-- Submit button is sticky at the bottom of the modal while scrolling
+Adds:
+- Dismiss/hide button for the cloud sync panel
+- Compact cloud chip stays in the sidebar
+- Click the compact chip to reopen the full panel
+- Preference is saved on the device
 
-Supabase login/cloud saving from v2.8/2.9 remains unchanged.
+Supabase login/cloud saving remains unchanged.
