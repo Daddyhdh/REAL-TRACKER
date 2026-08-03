@@ -1446,3 +1446,8 @@ html, body {
     text-overflow:clip!important;
   }
 }
+
+/* REAL TRACKER 5.0 storage parse fix */
+.runtime-error,.boot-error{
+  max-width:min(1100px,calc(100vw - 28px));
+}

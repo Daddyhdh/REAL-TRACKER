@@ -216,22 +216,21 @@ function normalizeCards(cards){
 function scanLegacyData(){
   const candidates=[]; const states=[];
   for(let i=0;i<localStorage.length;i++){
-    const key=localStorage.key(i); let parsed;
-    try{parsed=JSON.parse(localStorage.getItem(key));}catch(e){continue;}
-    const arrays=[];
-    if(looksLikeCardArray(parsed)) arrays.push(parsed);
-    if(parsed && typeof parsed==='object' && looksLikeCardArray(parsed.collection)) arrays.push(parsed.collection);
-    arrays.forEach(cards=>{
-      const score=cards.length*20+cards.reduce((n,c)=>n+(Array.isArray(c.claims)?c.claims.length:0)*3+(Number(c.marketValue||c.value||0)>0?5:0),0);
-      candidates.push({key,cards,score});
-    });
-    if(parsed && !Array.isArray(parsed) && typeof parsed==='object'){
-      const vals=Object.values(parsed); if(vals.some(v=>v==='claimed'||v==='pending'||v==='missed')) states.push({key,state:parsed,score:vals.filter(v=>v==='claimed').length});
-      if(parsed.claimState && typeof parsed.claimState==='object') states.push({key:key+':claimState',state:parsed.claimState,score:Object.values(parsed.claimState).filter(v=>v==='claimed').length});
+    const key=localStorage.key(i);
+    const raw=localStorage.getItem(key);
+    if(!looksLikeJson(raw))continue;
+    const parsed=safeJsonParse(raw,null);
+    if(parsed===null)continue;
+    if(isTrackerCollection(parsed)){
+      candidates.push({key,cards:parsed});
+    }else if(isTrackerState(parsed)){
+      // Only keep state-like objects, not random app/library JSON blobs.
+      const values=Object.values(parsed);
+      const stateLike=values.length===0 || values.every(v=>['claimed','missed','skipped'].includes(v));
+      if(stateLike)states.push({key,state:parsed});
     }
   }
-  candidates.sort((a,b)=>b.score-a.score); states.sort((a,b)=>b.score-a.score);
-  return {collection:candidates[0]||null,claimState:states[0]||null,candidates};
+  return {candidates,states};
 }
 
 let COLLECTION=[];
@@ -449,6 +448,26 @@ function updateBoosterPreview(){
  const stats=collectStatsFromModal();
  const est=boosterRaxForStats(stats,booster);
  boosterPreviewText.textContent=`Booster estimate: ${fmt(est)} RAX`;
+}
+
+
+function looksLikeJson(value){
+  if(typeof value!=='string')return false;
+  const s=value.trim();
+  return s.startsWith('{') || s.startsWith('[');
+}
+function safeJsonParse(value,fallback=null){
+  if(!looksLikeJson(value))return fallback;
+  try{return JSON.parse(value);}catch{return fallback;}
+}
+function safeLocalJson(key,fallback=null){
+  return safeJsonParse(localStorage.getItem(key),fallback);
+}
+function isTrackerCollection(value){
+  return Array.isArray(value) && value.every(x=>x && typeof x==='object' && (x.player || x.name || x.claims || x.sport || x.rarity));
+}
+function isTrackerState(value){
+  return value && typeof value==='object' && !Array.isArray(value);
 }
 
 const fmt=n=>Number(n||0).toLocaleString();
@@ -959,7 +978,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:48,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:50,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');

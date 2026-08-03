@@ -1,12 +1,13 @@
-# REAL TRACKER 4.9 Prompt Button Fix
+# REAL TRACKER 5.0 Storage Parse Fix
 
-Fix:
-- Copy date prompt button no longer lets text run outside the button.
-- Button sizes correctly on desktop.
-- Button goes full-width cleanly on smaller screens.
+Fixes:
+- Startup crash caused by JSON.parse reading a non-JSON localStorage value like "exports.ha..."
+- Recovery scan now ignores anything that does not look like REAL TRACKER JSON.
+- Keeps users signed in once Supabase loads normally.
+- Keeps Copy Prompt Helper.
+- Keeps no in-app date finder.
+- Keeps clean Dates & Base RAX section.
+- Cache-busts app.js/styles.css to v=50.
 
-Everything else remains from 4.8:
-- Copy prompt helper only
-- No in-app date finder/API call
-- Clean Dates & Base RAX section
-- Boosters Current Season only
+Upload all extracted files to GitHub root and commit to main.
+Then open your site with ?v=50 once.
