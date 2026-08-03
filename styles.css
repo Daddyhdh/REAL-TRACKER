@@ -1536,3 +1536,15 @@ body.auth-modal-from-gate .login-gate{
   position:relative;
   z-index:100002!important;
 }
+
+/* REAL TRACKER 5.3 auth modal function fix */
+#authModal.open{
+  z-index:100001!important;
+}
+#authModal.open .auth-sheet{
+  position:relative;
+  z-index:100002!important;
+}
+body.auth-modal-from-gate .login-gate{
+  display:none!important;
+}

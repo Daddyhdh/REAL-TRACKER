@@ -1,13 +1,13 @@
-# REAL TRACKER 5.2 Login Gate Button Fix
+# REAL TRACKER 5.3 Auth Modal Function Fix
 
-Fixes:
-- Login/Create Account buttons on the first-time login gate now open the real auth modal.
-- Auth modal appears above the gate.
-- If the user closes auth without signing in, the gate comes back.
-- Once the user signs in once on that device, the gate stays gone.
+Fix:
+- Login gate buttons were calling openAuthModal(), but the app did not define that function.
+- This caused: ReferenceError: Can't find variable: openAuthModal
+- 5.3 adds the missing function/wrapper and a backup button binding.
 
 Keeps:
-- Prompt says regular season only, no preseason.
-- Storage parse fix.
-- Copy Prompt Helper.
-- Clean Dates & Base RAX section.
+- Login gate
+- Prompt regular season only / no preseason
+- Storage parse fix
+- Copy Prompt Helper
+- Clean Dates & Base RAX section
