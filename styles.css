@@ -366,3 +366,46 @@ html, body {
   font-size:18px;
   margin-bottom:6px;
 }
+
+/* REAL TRACKER 2.4 easy add */
+.claim-editor-buttons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.add-claim-button.secondary{background:#05080d!important;color:var(--cyan)!important}
+.quick-claim-import{
+  margin:12px 0;
+  border:1px solid rgba(19,140,255,.22);
+  border-radius:14px;
+  background:#030507;
+  padding:12px;
+}
+.quick-claim-import label{display:block}
+.quick-claim-import small{display:block;color:var(--muted);font-weight:650;margin-top:3px}
+.quick-claim-import textarea{
+  width:100%;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#05080d;
+  color:white;
+  padding:11px;
+  resize:vertical;
+  outline:none;
+}
+.import-claims-button{
+  width:100%;
+  margin-top:9px;
+  border:1px solid rgba(86,199,255,.42);
+  background:#071b2d;
+  color:white;
+  border-radius:12px;
+  padding:11px;
+  font-weight:900;
+}
+@media(min-width:760px){
+  .quick-claim-import{
+    display:grid;
+    grid-template-columns:1fr 190px;
+    align-items:end;
+    gap:10px;
+  }
+  .import-claims-button{margin-top:0}
+}

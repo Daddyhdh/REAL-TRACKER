@@ -1,13 +1,16 @@
-# REAL TRACKER 2.3 Public Starter
+# REAL TRACKER 2.4 Easy Add
 
-This is the public version with the owner's personal stats removed.
+Public starter update:
+- Added Mystic 5 through Mystic 10 as rarity options
+- Added Iconic 1 through Iconic 20 as rarity options
+- Multiplier remains editable for each card
+- Added +5 claim rows
+- Added fast-paste claim import
+- Public starter still has no owner stats or seeded personal data
 
-Changes:
-- collection.json is empty
-- New storage keys prevent older private data from appearing
-- New users start with a blank tracker
-- Users can add their own cards in Manage
-- Data saves only on their own device
-- Same visual UI and logo from the latest version
+Fast paste accepted examples:
+- 2025-08-16, 250
+- Aug 24 150
+- 9/12/2025 420
 
-Upload all extracted files to GitHub and commit to main. Netlify will update the same URL.
+Upload all extracted files to GitHub and commit to main.

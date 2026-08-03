@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER Public Starter</title>
+  <title>REAL TRACKER 2.4</title>
 </head>
 <body>
 <div id="appShell">
@@ -160,7 +160,16 @@
       <section class="form-section claim-editor-section">
         <div class="claim-editor-head">
           <div><div class="form-section-title">Claim history</div><small>Enter the RAX shown for the card at its current multiplier.</small></div>
-          <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add claim</button>
+          <div class="claim-editor-buttons">
+            <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add claim</button>
+            <button type="button" id="addFiveClaimsButton" class="add-claim-button secondary">+ 5 rows</button>
+          </div>
+        </div>
+        <div class="quick-claim-import">
+          <label>Fast paste claims <small>Paste lines like <b>2025-08-16, 250</b> or <b>Aug 16 250</b></small>
+            <textarea id="bulkClaimInput" rows="3" placeholder="2025-08-16, 250\nAug 24 150\n9/12/2025 420"></textarea>
+          </label>
+          <button type="button" id="importClaimsButton" class="import-claims-button">Import pasted claims</button>
         </div>
         <div class="claim-column-labels"><span>Date</span><span>RAX amount</span><span></span></div>
         <div id="claimRows" class="claim-entry-list"></div>
