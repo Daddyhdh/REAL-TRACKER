@@ -1,11 +1,13 @@
-# REAL TRACKER 2.2 Desktop Cleanup
+# REAL TRACKER 2.3 Public Starter
 
-Fixes:
-- Removed desktop horizontal scrolling
-- Tightened desktop sidebar and logo sizing
-- Reduced dashboard clutter on desktop
-- Made dashboard cards more compact
-- Kept the mobile design from v2.1
-- Preserved seeded collection: 12 cards and 453 dated claims
+This is the public version with the owner's personal stats removed.
 
-Upload all extracted files to the root of GitHub and commit to main.
+Changes:
+- collection.json is empty
+- New storage keys prevent older private data from appearing
+- New users start with a blank tracker
+- Users can add their own cards in Manage
+- Data saves only on their own device
+- Same visual UI and logo from the latest version
+
+Upload all extracted files to GitHub and commit to main. Netlify will update the same URL.

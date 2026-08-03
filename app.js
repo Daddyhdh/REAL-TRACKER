@@ -1,6 +1,6 @@
 
-const collectionKey='realTracker20Collection';
-const claimStateKey='realTracker20ClaimState';
+const collectionKey='realTrackerPublicCollectionV1';
+const claimStateKey='realTrackerPublicClaimStateV1';
 
 // Explicit element references. This avoids Safari/iPhone relying on element IDs as global variables.
 
@@ -136,7 +136,7 @@ let COLLECTION=[];
 let DATA={daily:[],cards:[],totals:{raw:0,collectible:0,lost:0}};
 let claimState=readFirstJson([claimStateKey,'realTrackerClaimStateV7','realTrackerClaimStateV6','realTrackerClaimStateV5','realTrackerClaimStateV4','realTrackerClaimStateV3','realOtdClaimStateV1'],{});
 let activeScreen='dashboard';
-let raxBalance=Number(localStorage.getItem('realTrackerRaxBalanceV1')||0);
+let raxBalance=Number(localStorage.getItem('realTrackerPublicRaxBalanceV1')||0);
 
 const rarityMultipliers={
  'Rare':4,'Epic':10,'Legendary 1':25,'Legendary 2':28,'Legendary 3':32,'Legendary 4':36,'Legendary 5':40,
@@ -268,7 +268,7 @@ function importData(file){
       if(payload.raxBalance!==undefined) raxBalance=Number(payload.raxBalance||0);
       saveCollection();
       localStorage.setItem(claimStateKey,JSON.stringify(claimState));
-      localStorage.setItem('realTrackerRaxBalanceV1',String(raxBalance));
+      localStorage.setItem('realTrackerPublicRaxBalanceV1',String(raxBalance));
       renderAll();
       showToast('Backup restored');
     }catch(err){
@@ -319,34 +319,41 @@ rarityInput.addEventListener('change',()=>multiplierInput.value=rarityMultiplier
 cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier,marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
 addClaimRowButton.addEventListener('click',()=>addClaimEntry());claimRows.addEventListener('click',e=>{const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
-exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
+exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
 
 recoverButton.addEventListener('click',async()=>{
-  const legacy=scanLegacyData();
-  let cards=legacy.collection?.cards;
-  let source=legacy.collection?.key;
-  const hasRealData=items=>Array.isArray(items)&&items.length>0&&items.some(c=>c&&c.player&&Array.isArray(c.claims)&&c.claims.length>0);
-  if(!hasRealData(cards)){
-    cards=await fetch('collection.json',{cache:'no-store'}).then(r=>r.json());
-    source='original seeded collection';
-  }
-  const count=cards.length;
-  if(confirm(`Restore ${count} cards from ${source}?`)){
-    COLLECTION=normalizeCards(cards);
-    if(legacy.claimState) claimState=legacy.claimState.state;
+  if(confirm('Reset this public tracker back to an empty starter collection?')){
+    COLLECTION=[];
+    claimState={};
+    raxBalance=0;
     saveCollection();
     localStorage.setItem(claimStateKey,JSON.stringify(claimState));
+    localStorage.setItem('realTrackerPublicRaxBalanceV1','0');
     renderAll();
-    showToast('Collection restored');
+    showToast('Public starter reset');
   }
 });
 
+
+// Public starter empty-state polish
+const oldRenderAllPublic = renderAll;
+renderAll = function(){
+  oldRenderAllPublic();
+  if(DATA && DATA.cards && DATA.cards.length===0){
+    const empty = '<div class="empty-state"><strong>No cards yet</strong>Add your first card in Manage, then enter claim dates and RAX amounts. Everything saves only on this device.</div>';
+    ['nextClaimCard','topEarners','sportBreakdown','cardsGrid','manageList','portfolioTable','valueLeaders','allocationLegend','sportTileBoard'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.innerHTML=empty;
+    });
+    const chart=document.getElementById('claimLineChart');
+    if(chart) chart.innerHTML='<div class="empty-state"><strong>No chart data yet</strong>Add cards with claim dates to generate visuals.</div>';
+  }
+};
+
 Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Could not load collection data');return r.json()})]).then(([defaults])=>{
- const direct=readFirstJson([collectionKey,'realTrackerCollectionV7','realTrackerCollectionV6','realTrackerCollectionV5','realTrackerCollectionV4','realTrackerCollectionV3','realOtdCollectionV2','realOtdCollectionV1'],null);
- const legacy=scanLegacyData();
- const hasRealData=cards=>Array.isArray(cards)&&cards.length>0&&cards.some(c=>c&&c.player&&Array.isArray(c.claims)&&c.claims.length>0);
- const chosen=hasRealData(direct)?direct:(legacy.collection&&hasRealData(legacy.collection.cards)?legacy.collection.cards:defaults);
+ const direct=readFirstJson([collectionKey],null);
+ const chosen=Array.isArray(direct)?direct:defaults;
  COLLECTION=normalizeCards(chosen);
  saveCollection();
  localStorage.setItem(claimStateKey,JSON.stringify(claimState));
