@@ -1,11 +1,9 @@
-# REAL TRACKER 2.9 Auth UI Polish
+# REAL TRACKER 3.0 Auth Button Fix
 
-Fixes the cloud account login/sign-up modal UI:
-- Cleaner card layout
-- Better spacing
-- Inputs stacked correctly
-- Larger tap targets
-- Logo/brand header
-- More polished tabs and button styling
+Fixes:
+- Login/sign-up button being pushed off-screen
+- Auth modal now scrolls inside the card if needed
+- Smaller, cleaner mobile/short-screen auth layout
+- Submit button is sticky at the bottom of the modal while scrolling
 
-Supabase login/cloud saving from v2.8 remains unchanged.
+Supabase login/cloud saving from v2.8/2.9 remains unchanged.
