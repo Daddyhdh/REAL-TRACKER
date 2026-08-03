@@ -1363,3 +1363,21 @@ html, body {
 @media(max-width:520px){
   .premium-claim-row,.otd-mode .premium-claim-row{grid-template-columns:1fr!important}
 }
+
+/* REAL TRACKER 4.7 root click fix */
+.removed-date-helper-dummies{
+  display:none!important;
+}
+.modal:not(.open){
+  pointer-events:none!important;
+  opacity:0;
+  visibility:hidden;
+}
+.modal.open{
+  pointer-events:auto!important;
+  opacity:1;
+  visibility:visible;
+}
+.ai-date-section{
+  display:none!important;
+}

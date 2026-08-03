@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="REAL TRACKER" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico?v=46" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=46" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=46" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=46" />
-      <link rel="stylesheet" href="styles.css?v=46" />
-  <title>REAL TRACKER 4.6</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=47" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=47" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=47" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=47" />
+              <link rel="stylesheet" href="styles.css?v=47" />
+  <title>REAL TRACKER 4.7</title>
 </head>
 <body>
 <div id="appShell">
@@ -327,5 +327,16 @@ Sep 22, 140"></textarea>
 </div>
 
 <div class="modal" id="balanceModal" aria-hidden="true"><div class="modal-sheet compact-sheet"><div class="modal-handle"></div><div class="modal-head"><h2>RAX balance</h2><button id="closeBalanceModal" class="icon-button">×</button></div><form id="balanceForm"><label>Current available RAX<input id="raxBalanceInput" type="number" min="0" step="1" /></label><button type="submit" class="save-button full-button">Save balance</button></form></div></div>
-<div class="toast" id="toast"></div><div id="runtimeError" class="runtime-error" hidden></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=46"></script>
+
+<div id="removedDateHelperDummies" class="removed-date-helper-dummies" hidden aria-hidden="true">
+  <p id="dateHelperCopy"></p>
+  <button type="button" id="findDatesButton"></button>
+  <button type="button" id="copyDatePromptButton"></button>
+  <button type="button" id="clearDatePasteButton"></button>
+  <div id="aiDateStatus" hidden></div>
+  <textarea id="dateOnlyPasteInput"></textarea>
+  <button type="button" id="importDateOnlyButton"></button>
+</div>
+
+<div class="toast" id="toast"></div><div id="runtimeError" class="runtime-error" hidden></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=47"></script>
 </body></html>

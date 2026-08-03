@@ -1,15 +1,15 @@
-# REAL TRACKER 4.6 Stable Click Fix
+# REAL TRACKER 4.7 Real Click Fix
 
-Built from the last stable base instead of patching the broken build.
+Root cause fixed:
+- The Date Finder UI was removed, but app.js still used required element lookups for its old IDs.
+- Because the app's $() helper throws when an ID is missing, the whole app crashed at startup.
+- This version keeps hidden dummy elements for those removed IDs so the visible Date Finder is gone, but startup no longer crashes.
 
-Fixes:
-- Removes Date Finder/Game Date Helper UI.
-- Guards all removed helper JavaScript so the app does not crash.
-- Adds cache-busting: styles.css?v=46 and app.js?v=46.
-- Adds a visible App Error box if JavaScript crashes again.
-- Uses the exact uploaded home-screen logo for favicon.ico, favicon-32.png, icon-192.png, and icon-512.png.
-- Keeps clean Dates & Base RAX rows.
-- Boosters only show for Current Season cards.
+Also:
+- Cache-busts app.js/styles.css with v=47.
+- Uses the uploaded home-screen logo as favicon.ico, favicon-32.png, icon-192.png, and icon-512.png.
+- Keeps the clean Dates & Base RAX section.
+- Boosters remain Current Season only.
 
 Upload all extracted files to GitHub root and commit to main.
-Then open: your-site-url.netlify.app/?v=46
+Then open your site with ?v=47 once.
