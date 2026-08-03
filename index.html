@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="REAL TRACKER" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico?v=54" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=54" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=54" />
-  <link rel="apple-touch-icon" href="icon-192.png?v=54" />
-              <link rel="stylesheet" href="styles.css?v=54" />
-  <title>REAL TRACKER 5.4</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=55" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=55" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=55" />
+  <link rel="apple-touch-icon" href="icon-192.png?v=55" />
+              <link rel="stylesheet" href="styles.css?v=55" />
+  <title>REAL TRACKER 5.5</title>
 </head>
 <body>
 <div id="appShell">
@@ -201,6 +201,13 @@
           <label><input type="radio" name="cardType" value="otd" id="cardTypeOtd" /><span><strong>OTD / Previous Season</strong><small>Historical claim dates and daily claim tracking</small></span></label>
         </div>
         <label>Player name<input id="playerInput" required placeholder="Player name" /></label>
+        <div id="sharedAutofillBox" class="shared-autofill-box" hidden>
+          <div>
+            <strong id="sharedAutofillTitle">Shared match found</strong>
+            <small id="sharedAutofillMeta">Use saved player info from the community database.</small>
+          </div>
+          <button type="button" id="applySharedAutofillButton" class="add-claim-button secondary">Autofill</button>
+        </div>
         <div class="form-grid">
           <label>Sport<select id="sportInput"><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option><option>UFC</option><option>CFB</option><option>NHL</option><option>CBB</option></select></label>
           <label>Rarity<select id="rarityInput"></select></label>
@@ -352,7 +359,7 @@ Sep 22, 140"></textarea>
 
 <div id="loginGate" class="login-gate" hidden aria-hidden="true">
   <div class="login-gate-card">
-    <img src="icon-192.png?v=54" alt="REAL TRACKER" />
+    <img src="icon-192.png?v=55" alt="REAL TRACKER" />
     <div class="eyebrow">REAL TRACKER</div>
     <h1>Sign in to start tracking</h1>
     <p>Create or log into your cloud account before using the tracker. After you sign in once on this device, this screen will not pop up again.</p>
@@ -363,5 +370,5 @@ Sep 22, 140"></textarea>
   </div>
 </div>
 
-<div class="toast" id="toast"></div><div id="runtimeError" class="runtime-error" hidden></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=54"></script>
+<div class="toast" id="toast"></div><div id="runtimeError" class="runtime-error" hidden></div><div id="bootError" class="boot-error" hidden></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=55"></script>
 </body></html>

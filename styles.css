@@ -1550,3 +1550,40 @@ body.auth-modal-from-gate .login-gate{
 }
 
 /* REAL TRACKER 5.4 collection JSON startup fix */
+
+/* REAL TRACKER 5.5 shared autofill */
+.shared-autofill-box{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid rgba(86,199,255,.26);
+  background:linear-gradient(135deg,rgba(19,140,255,.12),rgba(86,199,255,.06));
+  border-radius:15px;
+  padding:12px;
+  margin:-2px 0 12px;
+}
+.shared-autofill-box[hidden]{
+  display:none!important;
+}
+.shared-autofill-box strong{
+  color:white;
+  font-size:14px;
+}
+.shared-autofill-box small{
+  display:block;
+  color:#a9bfd1;
+  font-size:12px;
+  margin-top:3px;
+}
+.shared-autofill-box button{
+  white-space:nowrap;
+}
+@media(max-width:640px){
+  .shared-autofill-box{
+    display:grid;
+  }
+  .shared-autofill-box button{
+    width:100%;
+  }
+}

@@ -96,6 +96,10 @@ const closeModal = $('closeModal');
 const cardForm = $('cardForm');
 const cardId = $('cardId');
 const playerInput = $('playerInput');
+const sharedAutofillBox = $('sharedAutofillBox');
+const sharedAutofillTitle = $('sharedAutofillTitle');
+const sharedAutofillMeta = $('sharedAutofillMeta');
+const applySharedAutofillButton = $('applySharedAutofillButton');
 const sportInput = $('sportInput');
 const rarityInput = $('rarityInput');
 const multiplierInput = $('multiplierInput');
@@ -675,6 +679,107 @@ function setAuthMode(mode){
  authSubmitButton.textContent=mode==='login'?'Log in':'Create account';
  authPassword.autocomplete=mode==='login'?'current-password':'new-password';
 }
+
+let sharedAutofillTemplate=null;
+let sharedAutofillTimer=null;
+
+function templateKeyFromParts(player,sport,season,team,cardType){
+  return [player||'',sport||'',season||'',team||'',cardType||'']
+    .map(x=>String(x).trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))
+    .join('|');
+}
+function playerSearchKey(name){
+  return String(name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+function hideSharedAutofill(){
+  sharedAutofillTemplate=null;
+  if(sharedAutofillBox)sharedAutofillBox.hidden=true;
+}
+function templateFromCard(card){
+  const cleanClaims=(card.claims||[]).map(x=>({
+    date:x.date,
+    base:Number(x.base||0),
+    stats:x.stats||null,
+    statsConfirmed:!!x.statsConfirmed,
+    opponent:x.opponent||'',
+    result:x.result||''
+  })).filter(x=>x.date);
+  return {
+    template_key:templateKeyFromParts(card.player,card.sport,card.season,card.team,card.cardType),
+    player_key:playerSearchKey(card.player),
+    player_name:card.player||'',
+    sport:card.sport||'',
+    team:card.team||'',
+    season:card.season||'',
+    card_type:card.cardType||'otd',
+    rarity:card.rarity||'',
+    multiplier:Number(card.multiplier||0),
+    claims:cleanClaims,
+    notes:'',
+    updated_by:currentUser?.id||null,
+    updated_at:new Date().toISOString()
+  };
+}
+async function saveSharedTemplate(card){
+  if(!supabaseClient || !currentUser || !card?.player)return;
+  try{
+    const template=templateFromCard(card);
+    await supabaseClient.from('card_templates').insert(template);
+  }catch(err){
+    console.warn('Shared template save skipped',err?.message||err);
+  }
+}
+async function searchSharedTemplate(){
+  if(!supabaseClient || !currentUser || !playerInput)return;
+  const q=playerInput.value.trim();
+  if(q.length<3){hideSharedAutofill();return;}
+  const playerKey=playerSearchKey(q);
+  try{
+    const {data,error}=await supabaseClient
+      .from('card_templates')
+      .select('player_name,sport,team,season,card_type,rarity,multiplier,claims,updated_at')
+      .eq('player_key',playerKey)
+      .order('updated_at',{ascending:false})
+      .limit(1);
+    if(error)throw error;
+    if(!data || !data.length){hideSharedAutofill();return;}
+    sharedAutofillTemplate=data[0];
+    sharedAutofillTitle.textContent=`Autofill ${sharedAutofillTemplate.player_name}`;
+    const rowCount=Array.isArray(sharedAutofillTemplate.claims)?sharedAutofillTemplate.claims.length:0;
+    sharedAutofillMeta.textContent=`${sharedAutofillTemplate.sport||'Sport'} • ${sharedAutofillTemplate.team||'No team'} • ${sharedAutofillTemplate.season||'No season'} • ${rowCount} saved dates`;
+    sharedAutofillBox.hidden=false;
+  }catch(err){
+    console.warn('Shared autofill lookup skipped',err?.message||err);
+    hideSharedAutofill();
+  }
+}
+function scheduleSharedAutofillSearch(){
+  clearTimeout(sharedAutofillTimer);
+  sharedAutofillTimer=setTimeout(searchSharedTemplate,450);
+}
+function applySharedAutofill(){
+  const t=sharedAutofillTemplate;
+  if(!t)return;
+  playerInput.value=t.player_name||playerInput.value;
+  if(t.sport)sportInput.value=t.sport;
+  const type=t.card_type||'otd';
+  cardTypeCurrent.checked=type==='current';
+  cardTypeOtd.checked=type!=='current';
+  if(t.team)teamInput.value=t.team;
+  if(t.season)seasonInput.value=t.season;
+  if(t.rarity){
+    rarityInput.value=t.rarity;
+    if(t.multiplier)multiplierInput.value=t.multiplier;
+  }
+  updateCardTypeUI();
+  renderBoosterRateFields(collectBoosterSettings().rates);
+  claimRows.innerHTML='';
+  const claims=Array.isArray(t.claims)?t.claims:[];
+  claims.forEach(x=>addClaimEntry(x.date,Number(x.base||0),x));
+  hideSharedAutofill();
+  showToast(`Autofilled ${t.player_name}`);
+}
+
 function localSnapshot(){
  return {
    collection:COLLECTION,
@@ -998,7 +1103,7 @@ function closeStatsEditor(){
 }
 
 function openModal(id=null){
- const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';const type=c?.cardType||'otd';cardTypeCurrent.checked=type==='current';cardTypeOtd.checked=type!=='current';updateCardTypeUI();rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';seasonInput.value=c?.season||'';teamInput.value=c?.team||'';if(dateOnlyPasteInput)dateOnlyPasteInput.value='';claimRows.innerHTML='';
+ const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';hideSharedAutofill();playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';const type=c?.cardType||'otd';cardTypeCurrent.checked=type==='current';cardTypeOtd.checked=type!=='current';updateCardTypeUI();rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';seasonInput.value=c?.season||'';teamInput.value=c?.team||'';if(dateOnlyPasteInput)dateOnlyPasteInput.value='';claimRows.innerHTML='';
  const multiplier=Number(c?.multiplier||multiplierInput.value||1);(c?.claims||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>addClaimEntry(x.date,Number(x.base||0),x));
  updateClaimEmptyState();archiveButton.style.display=c?'block':'none';archiveButton.textContent=c?.active===false?'Restore':'Archive';
 }
@@ -1020,7 +1125,7 @@ function collectClaimEntries(multiplier,cardType){
 }
 
 function exportData(){
-  const payload={version:54,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:55,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1099,12 +1204,14 @@ statsNotesInput.addEventListener('input',updateBoosterPreview);
 claimRows.addEventListener('input',e=>{if(e.target.matches('.claim-base-input,.claim-date-input'))refreshClaimRowTotals();});
 sportInput.addEventListener('change',()=>{renderBoosterRateFields(collectBoosterSettings().rates);refreshClaimRowTotals();});
 multiplierInput.addEventListener('input',refreshClaimRowTotals);
+playerInput.addEventListener('input',scheduleSharedAutofillSearch);
+applySharedAutofillButton.addEventListener('click',applySharedAutofill);
 rarityInput.addEventListener('change',()=>{
  const auto=rarityMultipliers[rarityInput.value];
  if(auto){multiplierInput.value=auto;}
  refreshClaimRowTotals();
 });
-cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:cardType==='current'?collectBoosterSettings():defaultBooster(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
+cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:cardType==='current'?collectBoosterSettings():defaultBooster(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();saveSharedTemplate(obj);closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
 addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);if(importDateOnlyButton)importDateOnlyButton.addEventListener('click',importDateOnlyList);if(findDatesButton)findDatesButton.addEventListener('click',findDatesInApp);if(copyDatePromptButton)copyDatePromptButton.addEventListener('click',copyDatePrompt);
 if(manualCopyPromptButton)manualCopyPromptButton.addEventListener('click',copyDatePrompt);if(clearDatePasteButton)clearDatePasteButton.addEventListener('click',()=>{if(dateOnlyPasteInput)dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
