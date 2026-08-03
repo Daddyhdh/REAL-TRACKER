@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 2.8</title>
+  <title>REAL TRACKER 2.9</title>
 </head>
 <body>
 <div id="appShell">
@@ -222,17 +222,22 @@
 <div class="modal" id="authModal" aria-hidden="true">
   <div class="modal-sheet compact-sheet auth-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-head">
-      <div><div class="eyebrow">CLOUD ACCOUNT</div><h2 id="authTitle">Log in</h2></div>
-      <button id="closeAuthModal" class="icon-button">×</button>
+    <div class="auth-brand-panel">
+      <img src="tracker-logo-wide.png" alt="REAL TRACKER" />
+      <button id="closeAuthModal" class="icon-button auth-close">×</button>
+    </div>
+    <div class="auth-copy">
+      <div class="eyebrow">CLOUD ACCOUNT</div>
+      <h2 id="authTitle">Log in</h2>
+      <p>Save your cards, claims, balance, and progress across every device.</p>
     </div>
     <div class="auth-tabs">
       <button type="button" id="loginTab" class="active">Log in</button>
       <button type="button" id="signupTab">Sign up</button>
     </div>
     <form id="authForm">
-      <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
-      <label>Password<input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" /></label>
+      <label><span>Email</span><input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
+      <label><span>Password</span><input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" /></label>
       <button id="authSubmitButton" type="submit" class="save-button full-button">Log in</button>
     </form>
     <button id="forgotPasswordButton" type="button" class="text-button auth-link">Forgot password?</button>
