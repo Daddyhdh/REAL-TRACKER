@@ -1381,3 +1381,32 @@ html, body {
 .ai-date-section{
   display:none!important;
 }
+
+/* REAL TRACKER 4.8 copy prompt helper */
+.prompt-helper-section{
+  border-color:rgba(86,199,255,.14)!important;
+}
+.prompt-helper-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+}
+.prompt-helper-card small{
+  display:block;
+  color:#9eb7cc;
+  font-size:12px;
+  line-height:1.35;
+  margin-top:4px;
+}
+.prompt-copy-button{
+  white-space:nowrap;
+}
+@media(max-width:720px){
+  .prompt-helper-card{
+    display:grid;
+  }
+  .prompt-copy-button{
+    width:100%;
+  }
+}
