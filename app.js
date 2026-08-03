@@ -1,9 +1,20 @@
 
-const collectionKey='realOtdCollectionV2';
-const claimStateKey='realOtdClaimStateV1';
+const collectionKey='realTrackerCollectionV5';
+const claimStateKey='realTrackerClaimStateV5';
+
+// Explicit element references. This avoids Safari/iPhone relying on element IDs as global variables.
+
+
+function readFirstJson(keys, fallback){
+  for(const key of keys){
+    try{const value=localStorage.getItem(key);if(value){const parsed=JSON.parse(value);if(parsed!==null)return parsed;}}catch(e){}
+  }
+  return fallback;
+}
+
 let COLLECTION=[];
 let DATA={daily:[],cards:[],totals:{raw:0,collectible:0,lost:0}};
-let claimState=JSON.parse(localStorage.getItem(claimStateKey)||'{}');
+let claimState=readFirstJson([claimStateKey,'realTrackerClaimStateV3','realOtdClaimStateV1'],{});
 let activeScreen='dashboard';
 let raxBalance=Number(localStorage.getItem('realTrackerRaxBalanceV1')||0);
 
@@ -11,7 +22,7 @@ const rarityMultipliers={
  'Rare':4,'Epic':10,'Legendary 1':25,'Legendary 2':28,'Legendary 3':32,'Legendary 4':36,'Legendary 5':40,
  'Mystic 1':75,'Mystic 2':79,'Mystic 3':83,'Mystic 4':87,'Mystic 5':91
 };
-const sportColors={NFL:'#4d8dff',NBA:'#ff8b4d',WNBA:'#ff5f9f',MLB:'#31cf78',FC:'#f1c54a',Golf:'#8f9bff',UFC:'#ef5350',CFB:'#8c6cff',NHL:'#59c7f5',CBB:'#d96cff'};
+const sportColors={NFL:'#009dff',NBA:'#009dff',WNBA:'#009dff',MLB:'#009dff',FC:'#009dff',Golf:'#009dff',UFC:'#009dff',CFB:'#009dff',NHL:'#009dff',CBB:'#009dff'};
 const fmt=n=>Number(n||0).toLocaleString();
 const dateObj=s=>new Date(s+'T12:00:00');
 const monthName=s=>dateObj(s).toLocaleDateString(undefined,{month:'long',year:'numeric'});
@@ -122,8 +133,11 @@ archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===ca
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
 Promise.all([fetch('collection.json').then(r=>r.json())]).then(([defaults])=>{
- COLLECTION=JSON.parse(localStorage.getItem(collectionKey)||'null')||defaults.map(c=>({...c,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||''}));
+ const stored=readFirstJson([collectionKey,'realTrackerCollectionV3','realOtdCollectionV2'],null);
+ COLLECTION=(Array.isArray(stored)&&stored.length?stored:defaults).map(c=>({...c,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||'',claims:Array.isArray(c.claims)?c.claims:[]}));
+ saveCollection();
+ localStorage.setItem(claimStateKey,JSON.stringify(claimState));
  rarityInput.innerHTML=Object.keys(rarityMultipliers).map(r=>`<option>${r}</option>`).join('');
  const filters=['all','NFL','NBA','WNBA','MLB','FC','Golf','UFC','CFB','NHL','CBB'];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
- renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+ renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update());
 });

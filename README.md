@@ -1,10 +1,11 @@
-# REAL TRACKER v4
+# REAL TRACKER v5 Fix
 
-Updates:
-- Fixed market-value saving when claim history is empty
-- Added UFC, CFB, NHL, and CBB
-- Replaced claim-history text box with simple date and RAX rows
-- Claim values are entered as the displayed RAX amount and automatically converted for multiplier updates
-- Updated the visual system to feel closer to the clean dark styling of the Real app
+- Restores data from earlier v2/v3 local-storage keys automatically
+- Fixes all buttons on iPhone/Safari by using explicit DOM references
+- Forces the service worker to replace the broken cached app
+- Uses a REAL-inspired black interface with blue outlines and sharper lines
+- Removes decorative colored blobs and random accent colors
+- Keeps UFC, CFB, NHL, and CBB
+- Keeps the date + RAX claim-entry rows
 
-Upload all extracted files to the root of your GitHub repository and commit. Netlify will redeploy the same URL automatically.
+Upload every extracted file to the root of the GitHub repository and commit to main.

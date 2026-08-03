@@ -29,3 +29,40 @@
 .claim-empty-state.hidden{display:none}.claim-editor-section{gap:10px}
 #cardForm{gap:15px!important}.modal-sheet{background:#080b10!important}.modal-head{position:sticky;top:-1px;z-index:2;background:#080b10;padding:4px 0 10px}
 @media(max-width:480px){.claim-editor-head{align-items:center}.claim-column-labels,.claim-entry-row{grid-template-columns:1.15fr .8fr 36px}.form-section{padding:13px}}
+
+
+/* REAL-style visual system: black canvas, blue outlines, sharp geometry, no decorative blobs. */
+:root{
+  --bg:#000000;--panel:#050505;--panel2:#080808;--line:#1d1d1d;
+  --blue:#009dff;--cyan:#009dff;--green:#009dff;--gold:#009dff;
+  --red:#ff3b30;--purple:#009dff;--text:#f4f4f4;--muted:#8a8a8f;
+  --shadow:none
+}
+html,body{background:#000!important}
+body{background:#000!important}
+.topbar{background:rgba(0,0,0,.96)!important;border-bottom:1px solid #151515;backdrop-filter:blur(18px)}
+.desktop-sidebar{background:#000!important;border-right:1px solid #171717!important}
+.brand-mark,.claim-button,.save-button,.primary-small{background:#009dff!important;box-shadow:none!important}
+.hero-card,.portfolio-snapshot,.stat-card,.next-card,.claim-day,.panel,.kpi-panel,.collection-card,.manage-hero,.action-tile,.manage-row,.stats-row,.sport-item,.earner-card{
+  background:#050505!important;border:1px solid #242424!important;border-radius:8px!important;box-shadow:none!important
+}
+.hero-card,.portfolio-snapshot,.manage-hero{border-color:#0077bd!important}
+.hero-orbit,.stat-card:after,.kpi-panel:after,.collection-card:after{display:none!important}
+.hero-card{min-height:190px}
+.stat-card{min-height:108px}
+.icon-button,.filter-select,.search-box,.filter-chip,.table-tools input,.table-tools select,#cardForm input,#cardForm select,#cardForm textarea,#balanceForm input{
+  background:#050505!important;border:1px solid #292929!important;border-radius:6px!important;color:#f4f4f4!important
+}
+.filter-chip.active,.desktop-nav-item.active,.nav-item.active{background:#071622!important;border-color:#009dff!important;color:#009dff!important}
+.bottom-nav{background:rgba(5,5,5,.97)!important;border:1px solid #242424!important;border-radius:10px!important;box-shadow:none!important}
+.nav-item{border-radius:6px!important}.nav-item.active{background:#071622!important}
+.date-square,.total-pill,.rank-badge,.claim-summary-pill,.snapshot-grid div,.claim-row,.legend-row,.leader-row,.portfolio-row{
+  border-radius:6px!important;background:#090909!important;border:1px solid #202020!important
+}
+.progress-track,.sport-bar{background:#111!important;border-radius:0!important}.progress-fill,.sport-fill{background:#009dff!important;border-radius:0!important}
+.sport-dot{background:#009dff!important;color:#009dff!important;box-shadow:none!important}
+.eyebrow,.text-button,.rarity,.card-value,.total-pill,.claim-summary-pill span,.rank-badge,.stat-icon{color:#009dff!important}
+.card-otd,.earner-value{color:#f4f4f4!important}
+.donut{background:conic-gradient(#009dff 0deg,#111 0deg)!important}
+.modal-sheet{background:#050505!important;border-radius:10px 10px 0 0!important;border:1px solid #242424!important}
+@media(min-width:760px){.modal-sheet{border-radius:8px!important}.desktop-nav-item{border-radius:6px!important}}
