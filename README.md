@@ -1,14 +1,12 @@
-# REAL TRACKER 4.8 Copy Prompt Helper
+# REAL TRACKER 4.9 Prompt Button Fix
 
-Adds back:
-- A visible AI Prompt Helper section.
-- Copy date prompt button based on player, sport, team, season, and card type.
-- No in-app finder.
-- No API call.
-- No OpenAI key needed.
+Fix:
+- Copy date prompt button no longer lets text run outside the button.
+- Button sizes correctly on desktop.
+- Button goes full-width cleanly on smaller screens.
 
-Keeps:
-- Hidden dummy elements that prevent removed Date Finder IDs from crashing startup.
-- Clean Dates & Base RAX section.
-- Uploaded logo icons.
-- Boosters Current Season only.
+Everything else remains from 4.8:
+- Copy prompt helper only
+- No in-app date finder/API call
+- Clean Dates & Base RAX section
+- Boosters Current Season only
