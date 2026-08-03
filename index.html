@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 2.6</title>
+  <title>REAL TRACKER 2.7</title>
 </head>
 <body>
 <div id="appShell">
@@ -120,6 +120,7 @@
       <section id="manageScreen" class="screen">
         <div class="manage-hero"><div><div class="eyebrow">COLLECTION CONTROL</div><h2>Manage your cards</h2><p>Upgrade, add, archive, back up, or restore your collection.</p></div><button id="addCardButton" class="primary-small">+ Add card</button></div>
         <div class="logo-preview-card"><img src="tracker-logo-wide.png" alt="Tracker logo"><span>Custom TRACKER mark installed</span></div>
+        <div class="formula-lab-card"><strong>Formula Lab</strong><span id="formulaSampleCount">0 actual RAX samples saved</span><small>Estimated RAX will stay empty until the app has enough confirmed REAL results to build a reliable formula.</small></div>
         <div class="manage-actions"><button id="exportButton" class="action-tile"><span>⇩</span><strong>Backup</strong><small>Download your data</small></button><label class="action-tile"><span>⇧</span><strong>Restore</strong><small>Import a backup</small><input id="importInput" type="file" accept=".json" hidden /></label><button id="recoverButton" class="action-tile"><span>↺</span><strong>Recover old data</strong><small>Scan older app versions</small></button></div><div id="manageList" class="manage-list"></div>
       </section>
 
@@ -159,7 +160,7 @@
 
       <section class="form-section ai-date-section">
         <div class="form-section-title">AI date helper <span class="beta-pill">BETA</span></div>
-        <p class="helper-copy">Use this to get game dates without typing every row by hand. Copy the prompt, ask ChatGPT, then paste the date list back here.</p>
+        <p class="helper-copy">Use this to get game dates without typing every row by hand. For now, the app stores actual RAX and leaves estimated RAX blank until enough confirmed samples exist.</p>
         <div class="form-grid">
           <label>Season / year<input id="seasonInput" placeholder="Example: 2025-26 or 2025" /></label>
           <label>Team <small>optional</small><input id="teamInput" placeholder="Example: Cowboys, Duke, Lakers" /></label>
@@ -178,7 +179,7 @@
 
       <section class="form-section claim-editor-section">
         <div class="claim-editor-head">
-          <div><div class="form-section-title">Claim history</div><small>Enter the RAX shown for the card at its current multiplier.</small></div>
+          <div><div class="form-section-title">Claim history</div><small>Enter the actual RAX shown in REAL. Estimated RAX stays blank until the formula is learned.</small></div>
           <div class="claim-editor-buttons">
             <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add claim</button>
             <button type="button" id="addFiveClaimsButton" class="add-claim-button secondary">+ 5 rows</button>
@@ -190,7 +191,7 @@
           </label>
           <button type="button" id="importClaimsButton" class="import-claims-button">Import pasted claims</button>
         </div>
-        <div class="claim-column-labels"><span>Date</span><span>RAX amount</span><span></span></div>
+        <div class="claim-column-labels learning-labels"><span>Date</span><span>Actual RAX</span><span>Est.</span><span></span></div>
         <div id="claimRows" class="claim-entry-list"></div>
         <div id="claimEmptyState" class="claim-empty-state">No claim dates added yet. You can still save the card and add claims later.</div>
       </section>

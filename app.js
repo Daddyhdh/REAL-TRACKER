@@ -59,6 +59,7 @@ const exportButton = $('exportButton');
 const importInput = $('importInput');
 const recoverButton = $('recoverButton');
 const manageList = $('manageList');
+const formulaSampleCount = document.getElementById('formulaSampleCount');
 const statsScreen = $('statsScreen');
 const seasonRing = $('seasonRing');
 const ringPercent = $('ringPercent');
@@ -244,7 +245,7 @@ function showToast(t){toast.textContent=t;toast.classList.add('show');clearTimeo
 
 function addClaimEntry(date='',rax=''){
  const row=document.createElement('div');row.className='claim-entry-row';
- row.innerHTML=`<input class="claim-date-input" type="date" value="${date}"><input class="claim-rax-input" type="number" min="0" step="1" inputmode="numeric" placeholder="RAX" value="${rax}"><button type="button" class="remove-claim-button" aria-label="Remove claim">×</button>`;
+ row.innerHTML=`<input class="claim-date-input" type="date" value="${date}"><input class="claim-rax-input" type="number" min="0" step="1" inputmode="numeric" placeholder="Actual" value="${rax}"><input class="estimated-rax-input" type="text" value="" placeholder="—" readonly title="Estimated RAX will appear after the formula is learned"><button type="button" class="remove-claim-button" aria-label="Remove claim">×</button>`;
  claimRows.appendChild(row);updateClaimEmptyState();
 }
 
@@ -396,7 +397,7 @@ function collectClaimEntries(multiplier){
   if(!date&&!raxText)continue;
   if(!date)throw new Error('Choose a date for every claim.');
   if(raxText!==''&&(isNaN(Number(raxText))||Number(raxText)<0))throw new Error('Enter a valid RAX amount for every claim.');
-  claims.push({date,base:Number(raxText||0)/Number(multiplier||1)});
+  claims.push({date,base:Number(raxText||0)/Number(multiplier||1),estimatedRax:null,formulaVersion:null});
  }
  return claims.sort((a,b)=>a.date.localeCompare(b.date));
 }

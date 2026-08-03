@@ -476,3 +476,48 @@ html, body {
 .ai-date-status[data-type="success"]{color:#9be7ff;border-color:rgba(86,199,255,.38)}
 .ai-date-status[data-type="error"]{color:#ff9a9a;border-color:rgba(255,90,90,.35)}
 .ai-date-status[data-type="loading"]{color:#dbeeff}
+
+/* REAL TRACKER 2.7 learning mode */
+.claim-entry-row{
+  grid-template-columns: minmax(120px, 1fr) minmax(88px, .75fr) minmax(64px, .55fr) 34px !important;
+}
+.learning-labels{
+  grid-template-columns: minmax(120px, 1fr) minmax(88px, .75fr) minmax(64px, .55fr) 34px !important;
+}
+.estimated-rax-input{
+  border:1px solid rgba(86,199,255,.18);
+  border-radius:10px;
+  background:#030507;
+  color:#6f7c8d;
+  padding:10px 8px;
+  text-align:center;
+  outline:none;
+}
+.formula-lab-card{
+  display:grid;
+  gap:5px;
+  margin:13px 0;
+  padding:14px;
+  border:1px solid rgba(19,140,255,.25);
+  border-radius:14px;
+  background:linear-gradient(180deg,#030507,#05080d);
+}
+.formula-lab-card strong{
+  color:#fff;
+  font-size:16px;
+}
+.formula-lab-card span{
+  color:var(--cyan);
+  font-size:13px;
+  font-weight:900;
+}
+.formula-lab-card small{
+  color:var(--muted);
+  line-height:1.4;
+}
+@media(max-width:520px){
+  .claim-entry-row,.learning-labels{
+    grid-template-columns: minmax(110px, 1fr) minmax(80px, .8fr) minmax(52px, .45fr) 32px !important;
+  }
+  .estimated-rax-input{padding:9px 5px}
+}
