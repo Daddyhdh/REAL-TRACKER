@@ -322,21 +322,31 @@ archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===ca
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
 
-recoverButton.addEventListener('click',()=>{
+recoverButton.addEventListener('click',async()=>{
   const legacy=scanLegacyData();
-  if(!legacy.collection){alert('No older card data was found on this device.');return;}
-  const count=legacy.collection.cards.length;
-  if(confirm(`Found ${count} cards in older saved data (${legacy.collection.key}). Restore them now?`)){
-    COLLECTION=normalizeCards(legacy.collection.cards);
+  let cards=legacy.collection?.cards;
+  let source=legacy.collection?.key;
+  const hasRealData=items=>Array.isArray(items)&&items.length>0&&items.some(c=>c&&c.player&&Array.isArray(c.claims)&&c.claims.length>0);
+  if(!hasRealData(cards)){
+    cards=await fetch('collection.json',{cache:'no-store'}).then(r=>r.json());
+    source='original seeded collection';
+  }
+  const count=cards.length;
+  if(confirm(`Restore ${count} cards from ${source}?`)){
+    COLLECTION=normalizeCards(cards);
     if(legacy.claimState) claimState=legacy.claimState.state;
-    saveCollection();localStorage.setItem(claimStateKey,JSON.stringify(claimState));renderAll();showToast('Old data recovered');
+    saveCollection();
+    localStorage.setItem(claimStateKey,JSON.stringify(claimState));
+    renderAll();
+    showToast('Collection restored');
   }
 });
 
 Promise.all([fetch('collection.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Could not load collection data');return r.json()})]).then(([defaults])=>{
  const direct=readFirstJson([collectionKey,'realTrackerCollectionV7','realTrackerCollectionV6','realTrackerCollectionV5','realTrackerCollectionV4','realTrackerCollectionV3','realOtdCollectionV2','realOtdCollectionV1'],null);
  const legacy=scanLegacyData();
- const chosen=(Array.isArray(direct)&&direct.length?direct:(legacy.collection?legacy.collection.cards:defaults));
+ const hasRealData=cards=>Array.isArray(cards)&&cards.length>0&&cards.some(c=>c&&c.player&&Array.isArray(c.claims)&&c.claims.length>0);
+ const chosen=hasRealData(direct)?direct:(legacy.collection&&hasRealData(legacy.collection.cards)?legacy.collection.cards:defaults);
  COLLECTION=normalizeCards(chosen);
  saveCollection();
  localStorage.setItem(claimStateKey,JSON.stringify(claimState));
