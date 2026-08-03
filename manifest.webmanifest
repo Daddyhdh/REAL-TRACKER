@@ -1,6 +1,6 @@
 {
-  "name": "REAL OTD Collection Manager",
-  "short_name": "REAL OTD",
+  "name": "REAL TRACKER",
+  "short_name": "REAL TRACKER",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#07111f",

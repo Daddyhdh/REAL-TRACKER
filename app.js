@@ -5,6 +5,7 @@ let COLLECTION=[];
 let DATA={daily:[],cards:[],totals:{raw:0,collectible:0,lost:0}};
 let claimState=JSON.parse(localStorage.getItem(claimStateKey)||'{}');
 let activeScreen='dashboard';
+let raxBalance=Number(localStorage.getItem('realTrackerRaxBalanceV1')||0);
 
 const rarityMultipliers={
  'Rare':4,'Epic':10,'Legendary 1':25,'Legendary 2':28,'Legendary 3':32,'Legendary 4':36,'Legendary 5':40,
@@ -32,23 +33,25 @@ function recompute(){
  const cards=COLLECTION.filter(c=>c.active!==false).map(c=>{
   const raw=(c.claims||[]).reduce((s,x)=>s+Math.round(Number(x.base)*Number(c.multiplier)),0);
   const collectible=rows.filter(r=>r.player===c.player&&r.selected).reduce((s,x)=>s+x.rax,0);
-  return {...c,raw,collectible,lost:raw-collectible};
+  return {...c,raw,collectible,lost:raw-collectible,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||''};
  }).sort((a,b)=>b.collectible-a.collectible);
  DATA={daily,cards,totals:{raw:cards.reduce((s,c)=>s+c.raw,0),collectible:cards.reduce((s,c)=>s+c.collectible,0),lost:cards.reduce((s,c)=>s+c.lost,0)}};
 }
 function claimedTotal(){return DATA.daily.reduce((s,d)=>s+(claimState[d.date]==='claimed'?d.total:0),0)}
 function missedTotal(){return DATA.daily.reduce((s,d)=>s+(claimState[d.date]==='missed'?d.total:0),0)}
-function claimedDays(){return DATA.daily.filter(d=>claimState[d.date]==='claimed').length}
+function claimedDaysCount(){return DATA.daily.filter(d=>claimState[d.date]==='claimed').length}
 function todayClaim(){const k=new Date().toISOString().slice(0,10),d=DATA.daily.find(x=>x.date===k);return d&&claimState[k]==='claimed'?d.total:0}
 function nextUnclaimed(){return DATA.daily.find(d=>claimState[d.date]!=='claimed')||DATA.daily[0]}
 function sportTotals(claimedOnly=false){const t={};DATA.daily.forEach(d=>{if(claimedOnly&&claimState[d.date]!=='claimed')return;d.claims.forEach(c=>t[c.sport]=(t[c.sport]||0)+c.rax)});return t}
+function collectionValue(){return DATA.cards.reduce((s,c)=>s+c.marketValue,0)}
+function sportValues(){const t={};DATA.cards.forEach(c=>t[c.sport]=(t[c.sport]||0)+c.marketValue);return t}
 
 function renderDashboard(){
  const claimed=claimedTotal(),total=DATA.totals.collectible,pct=total?claimed/total:0;
  claimedAmount.textContent=fmt(claimed);remainingAmount.textContent=fmt(total-claimed);progressFill.style.width=pct*100+'%';progressPercent.textContent=Math.round(pct*100)+'%';
- todayAmount.textContent=fmt(todayClaim());document.querySelector('.stat-card:nth-child(2)').style.display='none';claimedDays.textContent=claimedDays();totalOtd.textContent=fmt(total);
+ todayAmount.textContent=fmt(todayClaim());claimedDays.textContent=claimedDaysCount();totalOtd.textContent=fmt(total);cardCount.textContent=DATA.cards.length;portfolioValue.textContent=fmt(collectionValue());snapshotOtd.textContent=fmt(total);snapshotCards.textContent=DATA.cards.length;snapshotLost.textContent=fmt(DATA.totals.lost);
  const next=nextUnclaimed();nextClaimCard.innerHTML=next?claimCardHtml(next,true):'<div class="next-card">All claims completed.</div>';
- topEarners.innerHTML=DATA.cards.slice(0,6).map((c,i)=>`<article class="earner-card"><div class="rank-badge">${i+1}</div><div class="earner-name">${c.player}</div><div class="earner-meta">${c.sport} • ${c.rarity}</div><div class="earner-value">${fmt(c.collectible)}</div></article>`).join('');
+ topEarners.innerHTML=DATA.cards.slice(0,6).map((c,i)=>`<article class="earner-card" data-edit="${c.id}"><div class="rank-badge">${i+1}</div><div class="earner-name">${c.player}</div><div class="earner-meta">${c.sport} • ${c.rarity}</div><div class="earner-value">${fmt(c.collectible)}</div></article>`).join('');
  const totals=sportTotals(false),max=Math.max(1,...Object.values(totals));sportBreakdown.innerHTML=Object.entries(totals).map(([s,v])=>`<div class="sport-item"><div class="sport-head"><span>${s}</span><span>${fmt(v)}</span></div><div class="sport-bar"><div class="sport-fill" style="width:${v/max*100}%;background:${sportColors[s]}"></div></div></div>`).join('');
 }
 function claimCardHtml(d,compact=false){
@@ -57,34 +60,43 @@ function claimCardHtml(d,compact=false){
  return `<article class="${compact?'next-card':'claim-day'}"><div class="claim-header"><div class="date-badge"><div class="date-square"><strong>${md.day}</strong><small>${md.month}</small></div><div><div class="day-title">${shortDate(d.date)}</div><div class="day-sub">${d.claims.length} optimized claims</div></div></div><div class="total-pill">${fmt(d.total)}</div></div><div class="claim-list">${rows}</div><button class="claim-button ${status==='claimed'?'claimed':''}" data-claim-date="${d.date}">${status==='claimed'?'✓ Claimed':'Claim all for '+fmt(d.total)}</button></article>`;
 }
 function renderClaims(){
+ claimsRemaining.textContent=fmt(DATA.totals.collectible-claimedTotal());
  const q=claimSearch.value.trim().toLowerCase(),sport=sportFilter.value;let html='',m='';
  DATA.daily.forEach(d=>{if(!(sport==='all'||d.claims.some(c=>c.sport===sport)))return;if(q&&!d.claims.some(c=>c.player.toLowerCase().includes(q))&&!shortDate(d.date).toLowerCase().includes(q))return;const nm=monthName(d.date);if(nm!==m){m=nm;html+=`<div class="month-label">${nm.toUpperCase()}</div>`}html+=claimCardHtml(d,false)});
  claimsFeed.innerHTML=html||'<div class="next-card">No matching claims.</div>';
 }
 function renderCards(){
  const q=cardSearch.value.trim().toLowerCase(),selected=document.querySelector('.filter-chip.active')?.dataset.filter||'all';
- cardsGrid.innerHTML=DATA.cards.filter(c=>(selected==='all'||c.sport===selected)&&(!q||c.player.toLowerCase().includes(q))).map(c=>`<article class="collection-card" data-edit="${c.id}"><div class="rarity">${c.rarity.toUpperCase()}</div><div class="card-player">${c.player}</div><div class="card-meta">${c.sport} • ${c.lost?fmt(c.lost)+' overlap':'No overlap'}</div><div class="card-otd">${fmt(c.collectible)}</div></article>`).join('');
+ cardsGrid.innerHTML=DATA.cards.filter(c=>(selected==='all'||c.sport===selected)&&(!q||c.player.toLowerCase().includes(q))).map(c=>`<article class="collection-card" data-edit="${c.id}">${c.favorite?'<div class="favorite-star">★</div>':''}<div class="rarity">${c.rarity.toUpperCase()}</div><div class="card-player">${c.player}</div><div class="card-meta">${c.sport} • ${c.lost?fmt(c.lost)+' overlap':'No overlap'}</div><div class="card-otd">${fmt(c.collectible)}</div><div class="card-value">${c.marketValue?fmt(c.marketValue)+' market value':'Add market value'}</div></article>`).join('');
 }
 function renderStats(){
  const claimed=claimedTotal(),total=DATA.totals.collectible,pct=total?claimed/total:0;ringPercent.textContent=Math.round(pct*100)+'%';seasonRing.style.background=`conic-gradient(var(--green) ${pct*360}deg,#163048 0deg)`;
- statsCards.innerHTML=`<div class="stats-row"><span>Amount claimed</span><strong>${fmt(claimed)}</strong></div><div class="stats-row"><span>Remaining</span><strong>${fmt(total-claimed)}</strong></div><div class="stats-row"><span>Missed</span><strong>${fmt(missedTotal())}</strong></div><div class="stats-row"><span>Claimed days</span><strong>${claimedDays()}</strong></div>`;
+ statsCards.innerHTML=`<div class="stats-row"><span>Amount claimed</span><strong>${fmt(claimed)}</strong></div><div class="stats-row"><span>Remaining</span><strong>${fmt(total-claimed)}</strong></div><div class="stats-row"><span>Missed</span><strong>${fmt(missedTotal())}</strong></div><div class="stats-row"><span>Claimed days</span><strong>${claimedDaysCount()}</strong></div>`;
  const cb=sportTotals(true),all=sportTotals(false);statsSportList.innerHTML=Object.keys(all).map(s=>`<div class="sport-item"><div class="sport-head"><span>${s}</span><span>${fmt(cb[s]||0)} / ${fmt(all[s])}</span></div><div class="sport-bar"><div class="sport-fill" style="width:${(cb[s]||0)/all[s]*100}%;background:${sportColors[s]}"></div></div></div>`).join('');
 }
-function renderManage(){
- manageList.innerHTML=COLLECTION.map(c=>`<div class="manage-row"><div><div class="manage-name">${c.player}${c.active===false?'<span class="archived-badge">ARCHIVED</span>':''}</div><div class="manage-meta">${c.sport} • ${c.rarity} • ${c.multiplier}× • ${(c.claims||[]).length} dates</div></div><button class="edit-button" data-edit="${c.id}">Edit</button></div>`).join('');
+function renderPortfolio(){
+ const value=collectionValue(),remaining=DATA.totals.collectible-claimedTotal(),grand=value+raxBalance;
+ portfolioCollectionValue.textContent=fmt(value);raxBalanceValue.textContent=fmt(raxBalance);portfolioGrandTotal.textContent=fmt(grand);portfolioOtdRemaining.textContent=fmt(remaining);donutTotal.textContent=fmt(value);
+ const values=sportValues(),total=Math.max(1,Object.values(values).reduce((a,b)=>a+b,0));let cur=0,parts=[];Object.entries(values).filter(([,v])=>v>0).forEach(([sp,v])=>{let start=cur,end=cur+v/total*360;parts.push(`${sportColors[sp]} ${start}deg ${end}deg`);cur=end});portfolioDonut.style.background=parts.length?`conic-gradient(${parts.join(',')})`:'conic-gradient(#183148 0deg 360deg)';
+ allocationLegend.innerHTML=Object.entries(values).sort((a,b)=>b[1]-a[1]).map(([sp,v])=>`<div class="legend-row"><div class="legend-name"><span class="legend-dot" style="background:${sportColors[sp]}"></span><strong>${sp}</strong></div><span>${fmt(v)}</span></div>`).join('')||'<div class="legend-row">Add market values to see allocation.</div>';
+ valueLeaders.innerHTML=DATA.cards.slice().sort((a,b)=>b.marketValue-a.marketValue).slice(0,6).map((c,i)=>`<div class="leader-row" data-edit="${c.id}"><div><strong>#${i+1} ${c.player}</strong><div class="manage-meta">${c.sport} • ${c.rarity}</div></div><span>${fmt(c.marketValue)}</span></div>`).join('');renderPortfolioTable();
 }
-function renderAll(){recompute();renderDashboard();renderClaims();renderCards();renderStats();renderManage()}
-function setScreen(screen){activeScreen=screen;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelector('#'+screen+'Screen').classList.add('active');document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));screenTitle.textContent={dashboard:'Dashboard',claims:'Claims',cards:'My Cards',manage:'Manage',stats:'Stats'}[screen];window.scrollTo({top:0,behavior:'smooth'})}
+function renderPortfolioTable(){const q=portfolioSearch.value.trim().toLowerCase(),sort=portfolioSort.value;let rows=DATA.cards.filter(c=>!q||c.player.toLowerCase().includes(q));if(sort==='value')rows.sort((a,b)=>b.marketValue-a.marketValue);if(sort==='otd')rows.sort((a,b)=>b.collectible-a.collectible);if(sort==='name')rows.sort((a,b)=>a.player.localeCompare(b.player));portfolioTable.innerHTML=rows.map(c=>`<div class="portfolio-row" data-edit="${c.id}"><div><h3>${c.favorite?'★ ':''}${c.player}</h3><p>${c.sport} • ${c.rarity} • ${fmt(c.collectible)} OTD</p></div><div class="portfolio-values"><strong>${fmt(c.marketValue)}</strong><small>market value</small></div></div>`).join('')}
+function renderManage(){
+ manageList.innerHTML=COLLECTION.map(c=>`<div class="manage-row"><div><div class="manage-name">${c.favorite?'★ ':''}${c.player}${c.active===false?'<span class="archived-badge">ARCHIVED</span>':''}</div><div class="manage-meta">${c.sport} • ${c.rarity} • ${c.multiplier}× • ${(c.claims||[]).length} dates${c.marketValue?' • '+fmt(c.marketValue)+' value':''}</div></div><button class="edit-button" data-edit="${c.id}">Edit</button></div>`).join('');
+}
+function renderAll(){recompute();renderDashboard();renderClaims();renderCards();renderStats();renderManage();renderPortfolio()}
+function setScreen(screen){activeScreen=screen;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelector('#'+screen+'Screen').classList.add('active');document.querySelectorAll('[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));screenTitle.textContent={dashboard:'Dashboard',claims:'Claims',portfolio:'Portfolio',cards:'My Cards',manage:'Manage',stats:'Analytics'}[screen];window.scrollTo({top:0,behavior:'smooth'})}
 function toggleClaim(date){claimState[date]=claimState[date]==='claimed'?'pending':'claimed';localStorage.setItem(claimStateKey,JSON.stringify(claimState));renderAll();showToast(claimState[date]==='claimed'?'Claim added':'Claim removed')}
 function showToast(t){toast.textContent=t;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
 
 function openModal(id=null){
- const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;claimsInput.value=(c?.claims||[]).map(x=>`${x.date}, ${Number(x.base).toFixed(3).replace(/\\.?0+$/,'')}`).join('\\n');archiveButton.style.display=c?'block':'none';archiveButton.textContent=c?.active===false?'Restore':'Archive';
+ const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||0;favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';claimsInput.value=(c?.claims||[]).map(x=>`${x.date}, ${Number(x.base).toFixed(3).replace(/\\.?0+$/,'')}`).join('\\n');archiveButton.style.display=c?'block':'none';archiveButton.textContent=c?.active===false?'Restore':'Archive';
 }
 function closeModalFn(){cardModal.classList.remove('open');cardModal.setAttribute('aria-hidden','true')}
 function parseClaims(text){return text.split('\\n').map(s=>s.trim()).filter(Boolean).map(line=>{const [date,base]=line.split(',').map(x=>x.trim());if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||isNaN(Number(base)))throw new Error('Use YYYY-MM-DD, base Rax');return {date,base:Number(base)}})}
-function exportData(){const blob=new Blob([JSON.stringify({collection:COLLECTION,claimState},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='real-otd-backup.json';a.click();URL.revokeObjectURL(url)}
-function importData(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.collection))throw 0;COLLECTION=x.collection;claimState=x.claimState||{};saveCollection();localStorage.setItem(claimStateKey,JSON.stringify(claimState));renderAll();showToast('Backup restored')}catch{alert('That backup file is not valid.')}};r.readAsText(file)}
+function exportData(){const blob=new Blob([JSON.stringify({collection:COLLECTION,claimState,raxBalance},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='real-otd-backup.json';a.click();URL.revokeObjectURL(url)}
+function importData(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.collection))throw 0;COLLECTION=x.collection;claimState=x.claimState||{};raxBalance=Number(x.raxBalance||0);saveCollection();localStorage.setItem('realTrackerRaxBalanceV1',raxBalance);localStorage.setItem(claimStateKey,JSON.stringify(claimState));renderAll();showToast('Backup restored')}catch{alert('That backup file is not valid.')}};r.readAsText(file)}
 
 document.addEventListener('click',e=>{
  const claim=e.target.closest('[data-claim-date]');if(claim)toggleClaim(claim.dataset.claimDate);
@@ -93,16 +105,16 @@ document.addEventListener('click',e=>{
  const chip=e.target.closest('.filter-chip');if(chip){document.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('active'));chip.classList.add('active');renderCards()}
  const edit=e.target.closest('[data-edit]');if(edit)openModal(edit.dataset.edit);
 });
-claimSearch.addEventListener('input',renderClaims);sportFilter.addEventListener('change',renderClaims);cardSearch.addEventListener('input',renderCards);
+claimSearch.addEventListener('input',renderClaims);sportFilter.addEventListener('change',renderClaims);cardSearch.addEventListener('input',renderCards);portfolioSearch.addEventListener('input',renderPortfolioTable);portfolioSort.addEventListener('change',renderPortfolioTable);
 resetButton.addEventListener('click',()=>{if(confirm('Reset all claim progress?')){claimState={};localStorage.removeItem(claimStateKey);renderAll();showToast('Progress reset')}});
-addCardButton.addEventListener('click',()=>openModal());closeModal.addEventListener('click',closeModalFn);cardModal.addEventListener('click',e=>{if(e.target===cardModal)closeModalFn()});
+quickAddButton.addEventListener('click',()=>openModal());addCardButton.addEventListener('click',()=>openModal());closeModal.addEventListener('click',closeModalFn);cardModal.addEventListener('click',e=>{if(e.target===cardModal)closeModalFn()});
 rarityInput.addEventListener('change',()=>multiplierInput.value=rarityMultipliers[rarityInput.value]||multiplierInput.value);
-cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier:Number(multiplierInput.value),active:existing?.active!==false,claims:parseClaims(claimsInput.value)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
+cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,rarity:rarityInput.value,multiplier:Number(multiplierInput.value),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),active:existing?.active!==false,claims:parseClaims(claimsInput.value)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
-exportButton.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});
+exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerRaxBalanceV1',raxBalance);balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
 
 Promise.all([fetch('collection.json').then(r=>r.json())]).then(([defaults])=>{
- COLLECTION=JSON.parse(localStorage.getItem(collectionKey)||'null')||defaults;
+ COLLECTION=JSON.parse(localStorage.getItem(collectionKey)||'null')||defaults.map(c=>({...c,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||''}));
  rarityInput.innerHTML=Object.keys(rarityMultipliers).map(r=>`<option>${r}</option>`).join('');
  const filters=['all',...new Set(COLLECTION.map(c=>c.sport))];cardFilters.innerHTML=filters.map((f,i)=>`<button class="filter-chip ${i===0?'active':''}" data-filter="${f}">${f==='all'?'All':f}</button>`).join('');
  renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');

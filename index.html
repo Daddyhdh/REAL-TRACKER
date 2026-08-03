@@ -3,196 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#07111f" />
+  <meta name="theme-color" content="#060b14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="REAL OTD" />
+  <meta name="apple-mobile-web-app-title" content="REAL TRACKER" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL OTD</title>
+  <title>REAL TRACKER</title>
 </head>
 <body>
-  <div id="app">
+<div id="appShell">
+  <aside class="desktop-sidebar">
+    <div class="brand"><div class="brand-mark">R</div><div><strong>REAL TRACKER</strong><small>Portfolio Command Center</small></div></div>
+    <nav class="desktop-nav">
+      <button class="desktop-nav-item active" data-screen="dashboard">⌂ Dashboard</button>
+      <button class="desktop-nav-item" data-screen="claims">✓ Claims</button>
+      <button class="desktop-nav-item" data-screen="portfolio">◈ Portfolio</button>
+      <button class="desktop-nav-item" data-screen="cards">◇ My Cards</button>
+      <button class="desktop-nav-item" data-screen="manage">＋ Manage</button>
+      <button class="desktop-nav-item" data-screen="stats">▥ Analytics</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="sidebarBackup" class="sidebar-action">⇩ Backup data</button>
+      <label class="sidebar-action">⇧ Restore data<input id="sidebarImport" type="file" accept=".json" hidden /></label>
+    </div>
+  </aside>
+
+  <div class="app-main">
     <header class="topbar">
-      <div>
-        <div class="eyebrow">REAL OTD</div>
-        <h1 id="screenTitle">Dashboard</h1>
-      </div>
-      <button class="icon-button" id="resetButton" aria-label="Reset claim progress">↻</button>
+      <div><div class="eyebrow">REAL TRACKER</div><h1 id="screenTitle">Dashboard</h1></div>
+      <div class="top-actions"><button class="icon-button" id="quickAddButton">＋</button><button class="icon-button" id="resetButton">↻</button></div>
     </header>
 
     <main>
       <section id="dashboardScreen" class="screen active">
-        <div class="hero-card">
-          <div class="hero-glow"></div>
-          <div class="hero-label">Amount claimed</div>
-          <div class="hero-value"><span id="claimedAmount">0</span> <small>RAX</small></div>
-          <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
-          <div class="progress-meta">
-            <span id="progressPercent">0%</span>
-            <span><span id="remainingAmount">0</span> left</span>
-          </div>
+        <div class="desktop-hero-grid">
+          <article class="hero-card">
+            <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+            <div class="hero-label">Amount claimed</div>
+            <div class="hero-value"><span id="claimedAmount">0</span> <small>RAX</small></div>
+            <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+            <div class="progress-meta"><span id="progressPercent">0%</span><span><span id="remainingAmount">0</span> remaining</span></div>
+          </article>
+          <article class="portfolio-snapshot">
+            <div class="snapshot-head"><div><div class="eyebrow">PORTFOLIO</div><h2>Collection snapshot</h2></div><button class="text-button" data-go="portfolio">Open</button></div>
+            <div class="snapshot-number"><span id="portfolioValue">0</span> <small>RAX</small></div>
+            <div class="snapshot-caption">Entered market value</div>
+            <div class="snapshot-grid"><div><span>OTD potential</span><strong id="snapshotOtd">0</strong></div><div><span>Active cards</span><strong id="snapshotCards">0</strong></div><div><span>Overlap lost</span><strong id="snapshotLost">0</strong></div></div>
+          </article>
         </div>
 
         <div class="stat-grid">
-          <article class="stat-card">
-            <span class="stat-icon">⚡</span>
-            <div class="stat-label">Today</div>
-            <div class="stat-value" id="todayAmount">0</div>
-          </article>
-          <article class="stat-card">
-            <span class="stat-icon">🔥</span>
-            <div class="stat-label">Claim streak</div>
-            <div class="stat-value"><span id="streakValue">0</span> days</div>
-          </article>
-          <article class="stat-card">
-            <span class="stat-icon">✓</span>
-            <div class="stat-label">Days claimed</div>
-            <div class="stat-value" id="claimedDays">0</div>
-          </article>
-          <article class="stat-card">
-            <span class="stat-icon">◎</span>
-            <div class="stat-label">Total OTD</div>
-            <div class="stat-value" id="totalOtd">0</div>
-          </article>
+          <article class="stat-card blue"><span class="stat-icon">⚡</span><div class="stat-label">Today claimed</div><div class="stat-value" id="todayAmount">0</div></article>
+          <article class="stat-card green"><span class="stat-icon">✓</span><div class="stat-label">Claimed days</div><div class="stat-value" id="claimedDays">0</div></article>
+          <article class="stat-card gold"><span class="stat-icon">◎</span><div class="stat-label">Total OTD</div><div class="stat-value" id="totalOtd">0</div></article>
+          <article class="stat-card purple"><span class="stat-icon">◇</span><div class="stat-label">Card count</div><div class="stat-value" id="cardCount">0</div></article>
         </div>
 
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">UP NEXT</div>
-            <h2>Next claim day</h2>
-          </div>
+        <div class="dashboard-columns">
+          <div><div class="section-heading"><div><div class="eyebrow">UP NEXT</div><h2>Next claim day</h2></div><button class="text-button" data-go="claims">All claims</button></div><div id="nextClaimCard"></div></div>
+          <div><div class="section-heading"><div><div class="eyebrow">BREAKDOWN</div><h2>By sport</h2></div></div><div id="sportBreakdown" class="sport-list"></div></div>
         </div>
-        <div id="nextClaimCard"></div>
-
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">COLLECTION</div>
-            <h2>Top earners</h2>
-          </div>
-          <button class="text-button" data-go="cards">View all</button>
-        </div>
+        <div class="section-heading"><div><div class="eyebrow">COLLECTION</div><h2>Top earners</h2></div><button class="text-button" data-go="cards">View all</button></div>
         <div id="topEarners" class="horizontal-scroll"></div>
-
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">BREAKDOWN</div>
-            <h2>By sport</h2>
-          </div>
-        </div>
-        <div id="sportBreakdown" class="sport-list"></div>
       </section>
 
       <section id="claimsScreen" class="screen">
-        <div class="search-row">
-          <div class="search-box">
-            <span>⌕</span>
-            <input id="claimSearch" placeholder="Search claims" />
-          </div>
-          <select id="sportFilter" class="filter-select">
-            <option value="all">All sports</option>
-            <option>NFL</option><option>NBA</option><option>WNBA</option>
-            <option>MLB</option><option>FC</option><option>Golf</option>
-          </select>
-        </div>
+        <div class="page-intro"><div><div class="eyebrow">CLAIM CENTER</div><h2>Optimized claim schedule</h2><p>The best two claims per sport are already selected.</p></div><div class="claim-summary-pill"><span id="claimsRemaining">0</span><small>RAX left</small></div></div>
+        <div class="search-row"><div class="search-box"><span>⌕</span><input id="claimSearch" placeholder="Search claims" /></div><select id="sportFilter" class="filter-select"><option value="all">All sports</option><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option></select></div>
         <div id="claimsFeed"></div>
       </section>
 
-      <section id="cardsScreen" class="screen">
-        <div class="search-box cards-search">
-          <span>⌕</span>
-          <input id="cardSearch" placeholder="Search your cards" />
+      <section id="portfolioScreen" class="screen">
+        <div class="page-intro"><div><div class="eyebrow">PORTFOLIO</div><h2>Your collection at a glance</h2><p>Market value is optional. OTD updates automatically.</p></div><button id="editBalanceButton" class="primary-small">Edit RAX balance</button></div>
+        <div class="portfolio-kpi-grid">
+          <article class="kpi-panel blue"><span>Collection value</span><strong id="portfolioCollectionValue">0</strong><small>entered market value</small></article>
+          <article class="kpi-panel green"><span>RAX balance</span><strong id="raxBalanceValue">0</strong><small>cash available</small></article>
+          <article class="kpi-panel gold"><span>Total portfolio</span><strong id="portfolioGrandTotal">0</strong><small>cards + balance</small></article>
+          <article class="kpi-panel purple"><span>OTD remaining</span><strong id="portfolioOtdRemaining">0</strong><small>projected</small></article>
         </div>
-        <div class="filter-chips" id="cardFilters"></div>
-        <div id="cardsGrid" class="cards-grid"></div>
+        <div class="portfolio-layout">
+          <article class="panel"><div class="panel-head"><div><div class="eyebrow">ALLOCATION</div><h2>By sport</h2></div></div><div class="donut-wrap"><div class="donut" id="portfolioDonut"><div class="donut-center"><strong id="donutTotal">0</strong><span>RAX</span></div></div><div id="allocationLegend" class="legend-list"></div></div></article>
+          <article class="panel"><div class="panel-head"><div><div class="eyebrow">LEADERS</div><h2>Highest-value cards</h2></div></div><div id="valueLeaders" class="leader-list"></div></article>
+        </div>
+        <article class="panel portfolio-table-panel"><div class="panel-head"><div><div class="eyebrow">PORTFOLIO TABLE</div><h2>Card values</h2></div><div class="table-tools"><input id="portfolioSearch" placeholder="Search player" /><select id="portfolioSort"><option value="value">Market value</option><option value="otd">OTD</option><option value="name">Name</option></select></div></div><div id="portfolioTable" class="portfolio-table"></div></article>
+      </section>
+
+      <section id="cardsScreen" class="screen">
+        <div class="page-intro"><div><div class="eyebrow">COLLECTION</div><h2>My cards</h2><p>Tap any card to edit it.</p></div></div>
+        <div class="search-box cards-search"><span>⌕</span><input id="cardSearch" placeholder="Search your cards" /></div><div class="filter-chips" id="cardFilters"></div><div id="cardsGrid" class="cards-grid"></div>
       </section>
 
       <section id="manageScreen" class="screen">
-        <div class="manage-hero">
-          <div>
-            <div class="eyebrow">COLLECTION CONTROL</div>
-            <h2>Manage your cards</h2>
-            <p>Upgrade, add, archive, back up, or restore your collection.</p>
-          </div>
-          <button id="addCardButton" class="primary-small">+ Add card</button>
-        </div>
-        <div class="manage-actions">
-          <button id="exportButton" class="action-tile"><span>⇩</span><strong>Backup</strong><small>Download your data</small></button>
-          <label class="action-tile file-tile"><span>⇧</span><strong>Restore</strong><small>Import a backup</small><input id="importInput" type="file" accept=".json" hidden /></label>
-        </div>
-        <div id="manageList" class="manage-list"></div>
+        <div class="manage-hero"><div><div class="eyebrow">COLLECTION CONTROL</div><h2>Manage your cards</h2><p>Upgrade, add, archive, back up, or restore your collection.</p></div><button id="addCardButton" class="primary-small">+ Add card</button></div>
+        <div class="manage-actions"><button id="exportButton" class="action-tile"><span>⇩</span><strong>Backup</strong><small>Download your data</small></button><label class="action-tile"><span>⇧</span><strong>Restore</strong><small>Import a backup</small><input id="importInput" type="file" accept=".json" hidden /></label></div><div id="manageList" class="manage-list"></div>
       </section>
 
       <section id="statsScreen" class="screen">
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">OVERVIEW</div>
-            <h2>Your season</h2>
-          </div>
-        </div>
-        <div class="ring-wrap">
-          <div class="ring" id="seasonRing">
-            <div class="ring-inner">
-              <strong id="ringPercent">0%</strong>
-              <span>claimed</span>
-            </div>
-          </div>
-        </div>
-        <div id="statsCards" class="stats-stack"></div>
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">SPORTS</div>
-            <h2>Claim totals</h2>
-          </div>
-        </div>
-        <div id="statsSportList" class="sport-list"></div>
+        <div class="page-intro"><div><div class="eyebrow">ANALYTICS</div><h2>Your season</h2><p>Claim progress and performance across every sport.</p></div></div>
+        <div class="analytics-layout"><article class="panel ring-panel"><div class="ring-wrap"><div class="ring" id="seasonRing"><div class="ring-inner"><strong id="ringPercent">0%</strong><span>claimed</span></div></div></div></article><div id="statsCards" class="stats-stack"></div></div>
+        <div class="section-heading"><div><div class="eyebrow">SPORTS</div><h2>Claim totals</h2></div></div><div id="statsSportList" class="sport-list"></div>
       </section>
     </main>
-
-    <nav class="bottom-nav five">
-      <button class="nav-item active" data-screen="dashboard">
-        <span>⌂</span><small>Home</small>
-      </button>
-      <button class="nav-item" data-screen="claims">
-        <span>✓</span><small>Claims</small>
-      </button>
-      <button class="nav-item" data-screen="cards">
-        <span>◇</span><small>Cards</small>
-      </button>
-      <button class="nav-item" data-screen="manage">
-        <span>＋</span><small>Manage</small>
-      </button>
-      <button class="nav-item" data-screen="stats">
-        <span>▥</span><small>Stats</small>
-      </button>
-    </nav>
   </div>
 
-  <div class="modal" id="cardModal" aria-hidden="true">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-head"><h2 id="modalTitle">Edit card</h2><button id="closeModal" class="icon-button">×</button></div>
-      <form id="cardForm">
-        <input type="hidden" id="cardId" />
-        <label>Player name<input id="playerInput" required /></label>
-        <div class="form-grid">
-          <label>Sport<select id="sportInput"><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option></select></label>
-          <label>Rarity<select id="rarityInput"></select></label>
-        </div>
-        <label>Multiplier<input id="multiplierInput" type="number" min="1" step="1" required /></label>
-        <label>Claim history <small>One line per date: YYYY-MM-DD, base Rax</small>
-          <textarea id="claimsInput" rows="7" placeholder="2026-01-25, 67"></textarea>
-        </label>
-        <div class="modal-actions">
-          <button type="button" id="archiveButton" class="danger-button">Archive</button>
-          <button type="submit" class="save-button">Save changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  <div class="toast" id="toast"></div>
-  <script src="app.js"></script>
-</body>
-</html>
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-screen="dashboard"><span>⌂</span><small>Home</small></button><button class="nav-item" data-screen="claims"><span>✓</span><small>Claims</small></button><button class="nav-item" data-screen="portfolio"><span>◈</span><small>Portfolio</small></button><button class="nav-item" data-screen="cards"><span>◇</span><small>Cards</small></button><button class="nav-item" data-screen="manage"><span>＋</span><small>Manage</small></button>
+  </nav>
+</div>
+
+<div class="modal" id="cardModal" aria-hidden="true"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-head"><h2 id="modalTitle">Edit card</h2><button id="closeModal" class="icon-button">×</button></div><form id="cardForm"><input type="hidden" id="cardId" /><label>Player name<input id="playerInput" required /></label><div class="form-grid"><label>Sport<select id="sportInput"><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option></select></label><label>Rarity<select id="rarityInput"></select></label></div><div class="form-grid"><label>Multiplier<input id="multiplierInput" type="number" min="1" step="1" required /></label><label>Market value <small>optional</small><input id="marketValueInput" type="number" min="0" step="1" /></label></div><label class="favorite-toggle"><input id="favoriteInput" type="checkbox" /> Favorite card</label><label>Notes<textarea id="notesInput" rows="3" placeholder="Optional notes"></textarea></label><label>Claim history <small>One line per date: YYYY-MM-DD, base Rax</small><textarea id="claimsInput" rows="7" placeholder="2026-01-25, 67"></textarea></label><div class="modal-actions"><button type="button" id="archiveButton" class="danger-button">Archive</button><button type="submit" class="save-button">Save changes</button></div></form></div></div>
+<div class="modal" id="balanceModal" aria-hidden="true"><div class="modal-sheet compact-sheet"><div class="modal-handle"></div><div class="modal-head"><h2>RAX balance</h2><button id="closeBalanceModal" class="icon-button">×</button></div><form id="balanceForm"><label>Current available RAX<input id="raxBalanceInput" type="number" min="0" step="1" /></label><button type="submit" class="save-button full-button">Save balance</button></form></div></div>
+<div class="toast" id="toast"></div><script src="app.js"></script>
+</body></html>
