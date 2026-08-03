@@ -11,7 +11,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 4.0</title>
+  <title>REAL TRACKER 4.1</title>
 </head>
 <body>
 <div id="appShell">
@@ -215,6 +215,26 @@
         <label>Notes<textarea id="notesInput" rows="3" placeholder="Optional notes"></textarea></label>
       </section>
 
+
+      <section class="form-section booster-section">
+        <div class="claim-editor-head">
+          <div>
+            <div class="form-section-title">Boosters</div>
+            <small>Optional. Add booster multiplier and sport-specific RAX rates. Total RAX = base RAX × card multiplier + booster estimate.</small>
+          </div>
+        </div>
+        <label class="favorite-toggle"><input id="boosterEnabledInput" type="checkbox" /> Booster active for this card</label>
+        <div class="form-grid">
+          <label>Booster multiplier<input id="boosterMultiplierInput" type="number" min="0" step="0.01" placeholder="Example: 2" /></label>
+          <label>Booster notes <small>optional</small><input id="boosterNotesInput" placeholder="Example: 2x rushing yard booster" /></label>
+        </div>
+        <div class="booster-rate-head">
+          <span>Sport stat rates</span>
+          <small>Enter how many RAX the booster pays per stat before booster multiplier.</small>
+        </div>
+        <div id="boosterRatesGrid" class="booster-rates-grid"></div>
+      </section>
+
       <section class="form-section ai-date-section">
         <div class="form-section-title">Game Date Helper <span class="beta-pill">SMART</span></div>
         <p class="helper-copy" id="dateHelperCopy">Current cards use game dates for performance reviews. OTD cards use historical claim dates. Shared date lookup can be connected through Supabase later.</p>
@@ -232,7 +252,7 @@
 
       <section class="form-section claim-editor-section">
         <div class="claim-editor-head">
-          <div><div class="form-section-title" id="claimSectionTitle">Performance / claim rows</div><small id="claimSectionHelp">Enter actual RAX when REAL shows it. Estimated RAX stays blank until the formula is learned.</small></div>
+          <div><div class="form-section-title" id="claimSectionTitle">Performance / claim rows</div><small id="claimSectionHelp">Enter base RAX. The app multiplies it by the card multiplier and adds booster estimates.</small></div>
           <div class="claim-editor-buttons">
             <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add row</button>
             <button type="button" id="addFiveClaimsButton" class="add-claim-button secondary">+ 5 rows</button>
@@ -244,7 +264,7 @@
           </label>
           <button type="button" id="importClaimsButton" class="import-claims-button">Import pasted rows</button>
         </div>
-        <div class="claim-column-labels learning-labels"><span>Date</span><span>Actual RAX</span><span>Est.</span><span>Stats</span><span></span></div>
+        <div class="claim-column-labels learning-labels"><span>Date</span><span>Base RAX</span><span>Total</span><span>Est.</span><span>Stats</span><span></span></div>
         <div id="claimRows" class="claim-entry-list smart-claim-list"></div>
         <div id="claimEmptyState" class="claim-empty-state">No dates added yet. You can still save the card and add rows later.</div>
       </section>
@@ -289,14 +309,20 @@
       <div><div class="eyebrow">PERFORMANCE REVIEW</div><h2 id="statsModalTitle">Stats review</h2></div>
       <button id="closeStatsModal" class="icon-button">×</button>
     </div>
-    <p class="helper-copy">Enter or confirm the stats from this game. These stats plus actual RAX become a Formula Lab sample.</p>
+    <p class="helper-copy">For current cards, stats are required once a completed performance has base RAX. These stats help Formula Lab learn how performance affects REAL RAX.</p>
     <form id="statsForm">
       <input type="hidden" id="statsRowIndex" />
       <div class="form-grid">
         <label>Opponent<input id="statsOpponentInput" placeholder="Example: Panthers" /></label>
         <label>Result<input id="statsResultInput" placeholder="Example: W 24-20" /></label>
       </div>
-      <label>Stats JSON / notes<textarea id="statsJsonInput" rows="8" placeholder='Example: {"points":28,"rebounds":7,"assists":9,"turnovers":3,"clutch":"hit dagger"}'></textarea></label>
+      <div class="booster-rate-head">
+        <span id="statsSportLabel">Sport stats</span>
+        <small>Enter the stats from the completed game/performance.</small>
+      </div>
+      <div id="statsFieldsGrid" class="booster-rates-grid stats-fields-grid"></div>
+      <div id="boosterPreviewText" class="booster-preview">Booster estimate: 0 RAX</div>
+      <label>Extra stats / notes<textarea id="statsNotesInput" rows="4" placeholder="Optional: clutch play, minutes, snaps, REAL rating, stat source, etc."></textarea></label>
       <label class="favorite-toggle"><input id="statsConfirmedInput" type="checkbox" /> Stats look correct / confirmed</label>
       <button type="submit" class="save-button full-button">Save stats</button>
     </form>

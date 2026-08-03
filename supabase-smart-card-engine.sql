@@ -31,6 +31,8 @@ create table if not exists public.rax_samples (
   multiplier numeric not null,
   actual_rax numeric not null,
   base_rax numeric not null,
+  booster_rax numeric not null default 0,
+  booster_json jsonb,
   stats_json jsonb,
   stats_confirmed boolean not null default false,
   verified boolean not null default false,

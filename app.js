@@ -86,6 +86,10 @@ const multiplierInput = $('multiplierInput');
 const marketValueInput = $('marketValueInput');
 const favoriteInput = $('favoriteInput');
 const notesInput = $('notesInput');
+const boosterEnabledInput = $('boosterEnabledInput');
+const boosterMultiplierInput = $('boosterMultiplierInput');
+const boosterNotesInput = $('boosterNotesInput');
+const boosterRatesGrid = $('boosterRatesGrid');
 const cardTypeCurrent = $('cardTypeCurrent');
 const cardTypeOtd = $('cardTypeOtd');
 const cardTypeToggle = $('cardTypeToggle');
@@ -115,7 +119,10 @@ const statsRowIndex = $('statsRowIndex');
 const statsModalTitle = $('statsModalTitle');
 const statsOpponentInput = $('statsOpponentInput');
 const statsResultInput = $('statsResultInput');
-const statsJsonInput = $('statsJsonInput');
+const statsFieldsGrid = $('statsFieldsGrid');
+const statsSportLabel = $('statsSportLabel');
+const boosterPreviewText = $('boosterPreviewText');
+const statsNotesInput = $('statsNotesInput');
 const statsConfirmedInput = $('statsConfirmedInput');
 const balanceModal = $('balanceModal');
 const closeBalanceModal = $('closeBalanceModal');
@@ -168,6 +175,7 @@ function normalizeCards(cards){
     season:c.season || '',
     cardType:c.cardType || c.type || 'otd',
     rarity:c.rarity || 'Rare',
+    booster:normalizeBooster(c.booster),
     multiplier:Number(c.multiplier || rarityMultipliers?.[c.rarity] || 1),
     marketValue:Number(c.marketValue || c.value || 0),
     favorite:!!c.favorite,
@@ -237,6 +245,132 @@ const rarityMultipliers={
  'Mystic 1':75,'Mystic 2':79,'Mystic 3':83,'Mystic 4':87,'Mystic 5':91,'Mystic 6':95,'Mystic 7':99,'Mystic 8':103,'Mystic 9':107,'Mystic 10':111
 };
 const sportColors={NFL:'#009dff',NBA:'#009dff',WNBA:'#009dff',MLB:'#009dff',FC:'#009dff',Golf:'#009dff',UFC:'#009dff',CFB:'#009dff',NHL:'#009dff',CBB:'#009dff'};
+
+const sportStatFields={
+ NFL:[
+  ['passingYards','Passing yards'],['passingTD','Passing TDs'],['interceptions','Interceptions'],
+  ['rushingYards','Rushing yards'],['rushingTD','Rushing TDs'],
+  ['receptions','Receptions'],['receivingYards','Receiving yards'],['receivingTD','Receiving TDs'],
+  ['tackles','Tackles'],['sacks','Sacks'],['forcedFumbles','Forced fumbles'],['interceptionsDefense','Defensive INTs']
+ ],
+ CFB:[
+  ['passingYards','Passing yards'],['passingTD','Passing TDs'],['interceptions','Interceptions'],
+  ['rushingYards','Rushing yards'],['rushingTD','Rushing TDs'],
+  ['receptions','Receptions'],['receivingYards','Receiving yards'],['receivingTD','Receiving TDs'],
+  ['tackles','Tackles'],['sacks','Sacks'],['forcedFumbles','Forced fumbles'],['interceptionsDefense','Defensive INTs']
+ ],
+ NBA:[
+  ['points','Points'],['rebounds','Rebounds'],['assists','Assists'],['steals','Steals'],['blocks','Blocks'],
+  ['threesMade','3PM'],['turnovers','Turnovers'],['minutes','Minutes']
+ ],
+ WNBA:[
+  ['points','Points'],['rebounds','Rebounds'],['assists','Assists'],['steals','Steals'],['blocks','Blocks'],
+  ['threesMade','3PM'],['turnovers','Turnovers'],['minutes','Minutes']
+ ],
+ CBB:[
+  ['points','Points'],['rebounds','Rebounds'],['assists','Assists'],['steals','Steals'],['blocks','Blocks'],
+  ['threesMade','3PM'],['turnovers','Turnovers'],['minutes','Minutes']
+ ],
+ MLB:[
+  ['hits','Hits'],['runs','Runs'],['rbi','RBI'],['homeRuns','Home runs'],['stolenBases','Stolen bases'],['walks','Walks'],
+  ['strikeoutsBatting','Batting Ks'],['inningsPitched','IP'],['strikeoutsPitching','Pitching Ks'],['earnedRuns','Earned runs'],['saves','Saves']
+ ],
+ FC:[
+  ['goals','Goals'],['assists','Assists'],['shotsOnTarget','Shots on target'],['chancesCreated','Chances created'],
+  ['saves','Saves'],['cleanSheet','Clean sheet'],['tackles','Tackles'],['interceptions','Interceptions']
+ ],
+ Golf:[
+  ['birdies','Birdies'],['eagles','Eagles'],['pars','Pars'],['bogeys','Bogeys'],['doubleBogeys','Double bogeys'],
+  ['strokesUnderPar','Strokes under par'],['roundScore','Round score'],['finishPosition','Finish position']
+ ],
+ UFC:[
+  ['significantStrikes','Significant strikes'],['takedowns','Takedowns'],['knockdowns','Knockdowns'],
+  ['submissionAttempts','Submission attempts'],['reversals','Reversals'],['controlTimeMinutes','Control time min'],['win','Win'],['finish','Finish']
+ ],
+ NHL:[
+  ['goals','Goals'],['assists','Assists'],['shots','Shots'],['blocks','Blocks'],['hits','Hits'],
+  ['saves','Saves'],['goalsAgainst','Goals against'],['shutout','Shutout']
+ ]
+};
+function fieldsForSport(sport){return sportStatFields[sport]||sportStatFields.NFL;}
+function defaultBooster(){return {enabled:false,multiplier:1,notes:'',rates:{}}}
+function normalizeBooster(b){
+ return {enabled:!!b?.enabled,multiplier:Number(b?.multiplier||1),notes:b?.notes||'',rates:{...(b?.rates||{})}};
+}
+function collectBoosterSettings(){
+ const rates={};
+ boosterRatesGrid.querySelectorAll('.booster-rate-input').forEach(input=>{
+  const val=Number(input.value);
+  if(input.value!=='' && !isNaN(val))rates[input.dataset.stat]=val;
+ });
+ return {enabled:boosterEnabledInput.checked,multiplier:Number(boosterMultiplierInput.value||1),notes:boosterNotesInput.value.trim(),rates};
+}
+function renderBoosterRateFields(rates={}){
+ const fields=fieldsForSport(sportInput.value);
+ boosterRatesGrid.innerHTML=fields.map(([key,label])=>`<label>${label}<input class="booster-rate-input" data-stat="${key}" type="number" step="0.01" placeholder="RAX per ${label.toLowerCase()}" value="${rates[key]??''}"></label>`).join('');
+}
+function renderStatsFields(sport,stats={}){
+ const fields=fieldsForSport(sport);
+ if(statsSportLabel)statsSportLabel.textContent=`${sport} stats`;
+ statsFieldsGrid.innerHTML=fields.map(([key,label])=>`<label>${label}<input class="stats-field-input" data-stat="${key}" type="number" step="0.01" inputmode="decimal" value="${stats?.[key]??''}"></label>`).join('');
+}
+function collectStatsFromModal(){
+ const stats={};
+ statsFieldsGrid.querySelectorAll('.stats-field-input').forEach(input=>{
+  const val=Number(input.value);
+  if(input.value!=='' && !isNaN(val))stats[input.dataset.stat]=val;
+ });
+ const notes=statsNotesInput.value.trim();
+ if(notes)stats.notes=notes;
+ return stats;
+}
+function hasEnteredStats(stats){
+ if(!stats)return false;
+ return Object.entries(stats).some(([k,v])=>k==='notes'?String(v).trim():v!==''&&v!==null&&v!==undefined&&!isNaN(Number(v)));
+}
+function boosterRaxForStats(stats,booster){
+ booster=normalizeBooster(booster);
+ if(!booster.enabled || !stats)return 0;
+ let total=0;
+ Object.entries(booster.rates||{}).forEach(([key,rate])=>{
+  const stat=Number(stats?.[key]||0);
+  const r=Number(rate||0);
+  if(!isNaN(stat)&&!isNaN(r))total+=stat*r;
+ });
+ return Math.round(total*Number(booster.multiplier||1));
+}
+function boosterRaxForClaim(card,claim){return boosterRaxForStats(claim?.stats,card?.booster);}
+function totalRaxForClaim(card,claim){
+ const cardRax=Math.round(Number(claim?.base||0)*Number(card?.multiplier||1));
+ return cardRax+boosterRaxForClaim(card,claim);
+}
+function claimCardRax(multiplier,base){return Math.round(Number(base||0)*Number(multiplier||1));}
+function refreshClaimRowTotals(){
+ const multiplier=Number(multiplierInput.value||1);
+ const booster=collectBoosterSettings();
+ claimRows.querySelectorAll('.claim-entry-row').forEach(row=>{
+  const base=Number(row.querySelector('.claim-base-input')?.value||0);
+  const cardRax=claimCardRax(multiplier,base);
+  const boosterRax=boosterRaxForStats(row._statsData?.stats,booster);
+  const out=row.querySelector('.claim-total-output');
+  if(out)out.value=fmt(cardRax+boosterRax);
+  const btn=row.querySelector('.stats-row-button');
+  if(btn && activeCardType()==='current' && isPastDate(row.querySelector('.claim-date-input')?.value) && base>0 && !hasEnteredStats(row._statsData?.stats)){
+    btn.classList.add('needs-stats');
+  }else if(btn){
+    btn.classList.remove('needs-stats');
+  }
+ });
+ updateBoosterPreview();
+}
+function updateBoosterPreview(){
+ if(!boosterPreviewText || !editingStatsRow)return;
+ const booster=collectBoosterSettings();
+ const stats=collectStatsFromModal();
+ const est=boosterRaxForStats(stats,booster);
+ boosterPreviewText.textContent=`Booster estimate: ${fmt(est)} RAX`;
+}
+
 const fmt=n=>Number(n||0).toLocaleString();
 const dateObj=s=>new Date(s+'T12:00:00');
 const monthName=s=>dateObj(s).toLocaleDateString(undefined,{month:'long',year:'numeric'});
@@ -247,16 +381,17 @@ function isPastDate(date){return date && dateObj(date) < new Date(new Date().toI
 function formulaSamples(){
  const out=[];
  COLLECTION.forEach(card=>(card.claims||[]).forEach(claim=>{
-   const actual=Math.round(Number(claim.base||0)*Number(card.multiplier||1));
-   if(card.cardType==='current' && actual>0 && claim.statsConfirmed){
-     out.push({card,claim,actual,base:Number(claim.base||0),sport:card.sport});
+   const base=Number(claim.base||0);
+   const actual=totalRaxForClaim(card,claim);
+   if(card.cardType==='current' && base>0 && claim.statsConfirmed && hasEnteredStats(claim.stats)){
+     out.push({card,claim,actual,base,sport:card.sport,boosterRax:boosterRaxForClaim(card,claim)});
    }
  }));
  return out;
 }
 function currentNeedsReview(card,claim){
- const actual=Math.round(Number(claim.base||0)*Number(card.multiplier||1));
- return card.cardType==='current' && isPastDate(claim.date) && (!claim.statsConfirmed || actual<=0);
+ const base=Number(claim.base||0);
+ return card.cardType==='current' && isPastDate(claim.date) && base>0 && (!hasEnteredStats(claim.stats) || !claim.statsConfirmed);
 }
 
 function saveCollection(){
@@ -266,7 +401,7 @@ function saveCollection(){
 function recompute(){
  const rows=[];
  COLLECTION.filter(c=>c.active!==false).forEach(c=>{
-  (c.claims||[]).forEach(x=>rows.push({date:x.date,sport:c.sport,player:c.player,rarity:c.rarity,cardType:c.cardType||'otd',rax:Math.round(Number(x.base)*Number(c.multiplier))}));
+  (c.claims||[]).forEach(x=>rows.push({date:x.date,sport:c.sport,player:c.player,rarity:c.rarity,cardType:c.cardType||'otd',base:Number(x.base||0),cardRax:claimCardRax(c.multiplier,x.base),boosterRax:boosterRaxForClaim(c,x),rax:totalRaxForClaim(c,x)}));
  });
  const groups={};
  rows.filter(r=>r.cardType!=='current').forEach(r=>{const k=r.date+'|'+r.sport;(groups[k]??=[]).push(r)});
@@ -275,7 +410,7 @@ function recompute(){
  rows.filter(r=>r.selected).forEach(r=>(byDate[r.date]??=[]).push(r));
  const daily=Object.keys(byDate).sort().map(date=>({date,total:byDate[date].reduce((s,x)=>s+x.rax,0),claims:byDate[date].sort((a,b)=>a.sport.localeCompare(b.sport)||b.rax-a.rax)}));
  const cards=COLLECTION.filter(c=>c.active!==false).map(c=>{
-  const raw=(c.claims||[]).reduce((s,x)=>s+Math.round(Number(x.base)*Number(c.multiplier)),0);
+  const raw=(c.claims||[]).reduce((s,x)=>s+totalRaxForClaim(c,x),0);
   const collectible=(c.cardType==='current'?raw:rows.filter(r=>r.player===c.player&&r.selected).reduce((s,x)=>s+x.rax,0));
   return {...c,raw,collectible,lost:raw-collectible,marketValue:Number(c.marketValue||0),favorite:!!c.favorite,notes:c.notes||''};
  }).sort((a,b)=>b.collectible-a.collectible);
@@ -314,7 +449,7 @@ function renderClaims(){
 }
 function renderCards(){
  const q=cardSearch.value.trim().toLowerCase(),selected=document.querySelector('.filter-chip.active')?.dataset.filter||'all';
- cardsGrid.innerHTML=DATA.cards.filter(c=>(selected==='all'||c.sport===selected)&&(!q||c.player.toLowerCase().includes(q))).map(c=>`<article class="collection-card" data-edit="${c.id}">${c.favorite?'<div class="favorite-star">★</div>':''}<div class="rarity">${c.rarity.toUpperCase()}</div><div class="card-player">${c.player}</div><div class="card-meta">${c.sport} • ${c.lost?fmt(c.lost)+' overlap':'No overlap'}</div><div class="card-otd">${fmt(c.collectible)}</div><div class="card-value">${c.marketValue?fmt(c.marketValue)+' market value':'Add market value'}</div></article>`).join('');
+ cardsGrid.innerHTML=DATA.cards.filter(c=>(selected==='all'||c.sport===selected)&&(!q||c.player.toLowerCase().includes(q))).map(c=>`<article class="collection-card" data-edit="${c.id}">${c.favorite?'<div class="favorite-star">★</div>':''}<div class="rarity">${c.rarity.toUpperCase()}</div><div class="card-player">${c.player}</div><div class="card-meta">${c.sport} • ${(c.cardType||'otd')==='current'?'Current':'OTD'}${c.booster?.enabled?' • Booster':''}</div><div class="card-otd">${fmt(c.collectible)}</div><div class="card-value">${c.marketValue?fmt(c.marketValue)+' market value':'Add market value'}</div></article>`).join('');
 }
 function renderStats(){
  const claimed=claimedTotal(),total=DATA.totals.collectible,pct=total?claimed/total:0;ringPercent.textContent=Math.round(pct*100)+'%';seasonRing.style.background=`conic-gradient(var(--green) ${pct*360}deg,#163048 0deg)`;
@@ -539,12 +674,12 @@ async function forgotPassword(){
 }
 
 
-function addClaimEntry(date='',rax='',entry=null){
+function addClaimEntry(date='',base='',entry=null){
  const row=document.createElement('div');row.className='claim-entry-row';
  const statsLabel=entry?.statsConfirmed?'✓':(entry?.stats?'Review':'Stats');
- row.innerHTML=`<input class="claim-date-input" type="date" value="${date}"><input class="claim-rax-input" type="number" min="0" step="1" inputmode="numeric" placeholder="Actual" value="${rax}"><input class="estimated-rax-input" type="text" value="" placeholder="—" readonly title="Estimated RAX will appear after the formula is learned"><button type="button" class="stats-row-button">${statsLabel}</button><button type="button" class="remove-claim-button" aria-label="Remove row">×</button>`;
+ row.innerHTML=`<input class="claim-date-input" type="date" value="${date}"><input class="claim-base-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Base" value="${base}"><input class="claim-total-output" type="text" value="" placeholder="0" readonly title="Base RAX × card multiplier + booster estimate"><input class="estimated-rax-input" type="text" value="" placeholder="—" readonly title="Estimated RAX will appear after the formula is learned"><button type="button" class="stats-row-button">${statsLabel}</button><button type="button" class="remove-claim-button" aria-label="Remove row">×</button>`;
  row._statsData={stats:entry?.stats||null,statsConfirmed:!!entry?.statsConfirmed,opponent:entry?.opponent||'',result:entry?.result||''};
- claimRows.appendChild(row);updateClaimEmptyState();
+ claimRows.appendChild(row);updateClaimEmptyState();refreshClaimRowTotals();
 }
 
 function normalizeDateFromText(text){
@@ -676,7 +811,7 @@ function importBulkClaims(){
    const parsed=lines.map(parseFlexibleClaimLine).filter(Boolean);
    parsed.forEach(x=>addClaimEntry(x.date,x.rax));
    bulkClaimInput.value='';
-   showToast(`Imported ${parsed.length} claims`);
+   showToast(`Imported ${parsed.length} rows`);
  }catch(err){
    alert(err.message);
  }
@@ -686,11 +821,12 @@ function updateClaimEmptyState(){claimEmptyState.classList.toggle('hidden',claim
 function updateCardTypeUI(){
  const type=activeCardType();
  if(dateHelperCopy)dateHelperCopy.textContent=type==='current'
-  ? 'Current season cards use game dates. After games finish, review stats and enter actual REAL RAX.'
-  : 'OTD cards use historical claim dates. The app tracks claim progress and applies the 2-claim-per-sport limit.';
+  ? 'Current season cards use game dates. After games finish, enter base RAX and required stats.'
+  : 'OTD cards use historical claim dates. Enter base RAX; the app multiplies by the card multiplier and tracks the 2-claim-per-sport limit.';
  if(claimSectionTitle)claimSectionTitle.textContent=type==='current'?'Game performances':'OTD claim history';
- if(claimSectionHelp)claimSectionHelp.textContent=type==='current'?'Enter actual RAX after each game. Use Stats to confirm box-score notes for Formula Lab.':'Enter the actual OTD RAX shown in REAL for each claim date.';
- if(bulkPasteHelp)bulkPasteHelp.innerHTML=type==='current'?'Paste game dates, optionally with actual RAX.':'Paste OTD claim dates, optionally with actual RAX.';
+ if(claimSectionHelp)claimSectionHelp.textContent=type==='current'?'Enter base RAX after each game. Stats are required for completed current-card performances.':'Enter base OTD RAX. The app multiplies it by the card multiplier and adds booster estimates if used.';
+ if(bulkPasteHelp)bulkPasteHelp.innerHTML=type==='current'?'Paste game dates, optionally with base RAX.':'Paste OTD claim dates, optionally with base RAX.';
+ refreshClaimRowTotals();
 }
 function openStatsEditor(row){
  editingStatsRow=row;
@@ -700,10 +836,12 @@ function openStatsEditor(row){
  statsModalTitle.textContent=`Stats for ${date}`;
  statsOpponentInput.value=row._statsData?.opponent||'';
  statsResultInput.value=row._statsData?.result||'';
- statsJsonInput.value=row._statsData?.stats?JSON.stringify(row._statsData.stats,null,2):'';
+ renderStatsFields(sportInput.value,row._statsData?.stats||{});
+ statsNotesInput.value=row._statsData?.stats?.notes||'';
  statsConfirmedInput.checked=!!row._statsData?.statsConfirmed;
  statsModal.classList.add('open');
  statsModal.setAttribute('aria-hidden','false');
+ updateBoosterPreview();
 }
 function closeStatsEditor(){
  statsModal.classList.remove('open');
@@ -713,23 +851,28 @@ function closeStatsEditor(){
 
 function openModal(id=null){
  const c=id?COLLECTION.find(x=>x.id===id):null;cardModal.classList.add('open');cardModal.setAttribute('aria-hidden','false');modalTitle.textContent=c?'Edit card':'Add card';cardId.value=c?.id||'';playerInput.value=c?.player||'';sportInput.value=c?.sport||'NFL';const type=c?.cardType||'otd';cardTypeCurrent.checked=type==='current';cardTypeOtd.checked=type!=='current';updateCardTypeUI();rarityInput.value=c?.rarity||'Rare';multiplierInput.value=c?.multiplier||rarityMultipliers[rarityInput.value]||1;marketValueInput.value=c?.marketValue||'';favoriteInput.checked=!!c?.favorite;notesInput.value=c?.notes||'';seasonInput.value=c?.season||'';teamInput.value=c?.team||'';dateOnlyPasteInput.value='';claimRows.innerHTML='';
- const multiplier=Number(c?.multiplier||multiplierInput.value||1);(c?.claims||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>addClaimEntry(x.date,Math.round(Number(x.base)*multiplier),x));
+ const multiplier=Number(c?.multiplier||multiplierInput.value||1);(c?.claims||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(x=>addClaimEntry(x.date,Number(x.base||0),x));
  updateClaimEmptyState();archiveButton.style.display=c?'block':'none';archiveButton.textContent=c?.active===false?'Restore':'Archive';
 }
 function closeModalFn(){cardModal.classList.remove('open');cardModal.setAttribute('aria-hidden','true')}
-function collectClaimEntries(multiplier){
+function collectClaimEntries(multiplier,cardType){
  const claims=[];for(const row of claimRows.querySelectorAll('.claim-entry-row')){
-  const date=row.querySelector('.claim-date-input').value;const raxText=row.querySelector('.claim-rax-input').value;
-  if(!date&&!raxText)continue;
-  if(!date)throw new Error('Choose a date for every claim.');
-  if(raxText!==''&&(isNaN(Number(raxText))||Number(raxText)<0))throw new Error('Enter a valid RAX amount for every claim.');
-  claims.push({date,base:Number(raxText||0)/Number(multiplier||1),actualRax:raxText===''?null:Number(raxText),estimatedRax:null,formulaVersion:null,stats:row._statsData?.stats||null,statsConfirmed:!!row._statsData?.statsConfirmed,opponent:row._statsData?.opponent||'',result:row._statsData?.result||''});
+  const date=row.querySelector('.claim-date-input').value;const baseText=row.querySelector('.claim-base-input').value;
+  if(!date&&!baseText)continue;
+  if(!date)throw new Error('Choose a date for every row.');
+  if(baseText!==''&&(isNaN(Number(baseText))||Number(baseText)<0))throw new Error('Enter a valid base RAX amount for every row.');
+  const base=Number(baseText||0);
+  const stats=row._statsData?.stats||null;
+  if(cardType==='current' && isPastDate(date) && base>0 && !hasEnteredStats(stats)){
+    throw new Error('Current season cards need stats entered for each completed performance with base RAX.');
+  }
+  claims.push({date,base,actualRax:baseText===''?null:claimCardRax(multiplier,base),estimatedRax:null,formulaVersion:null,stats,statsConfirmed:!!row._statsData?.statsConfirmed,opponent:row._statsData?.opponent||'',result:row._statsData?.result||''});
  }
  return claims.sort((a,b)=>a.date.localeCompare(b.date));
 }
 
 function exportData(){
-  const payload={version:40,collection:COLLECTION,claimState,raxBalance};
+  const payload={version:41,collection:COLLECTION,claimState,raxBalance};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -800,12 +943,21 @@ document.addEventListener('click',event=>{
 claimSearch.addEventListener('input',renderClaims);sportFilter.addEventListener('change',renderClaims);cardSearch.addEventListener('input',renderCards);portfolioSearch.addEventListener('input',renderPortfolioTable);portfolioSort.addEventListener('change',renderPortfolioTable);
 resetButton.addEventListener('click',()=>{if(confirm('Reset all claim progress?')){claimState={};localStorage.removeItem(claimStateKey);scheduleCloudSave();renderAll();showToast('Progress reset')}});
 quickAddButton.addEventListener('click',()=>openModal());addCardButton.addEventListener('click',()=>openModal());closeModal.addEventListener('click',closeModalFn);cardModal.addEventListener('click',e=>{if(e.target===cardModal)closeModalFn()});
+boosterRatesGrid.addEventListener('input',refreshClaimRowTotals);
+boosterEnabledInput.addEventListener('change',refreshClaimRowTotals);
+boosterMultiplierInput.addEventListener('input',refreshClaimRowTotals);
+statsFieldsGrid.addEventListener('input',updateBoosterPreview);
+statsNotesInput.addEventListener('input',updateBoosterPreview);
+claimRows.addEventListener('input',e=>{if(e.target.matches('.claim-base-input,.claim-date-input'))refreshClaimRowTotals();});
+sportInput.addEventListener('change',()=>{renderBoosterRateFields(collectBoosterSettings().rates);refreshClaimRowTotals();});
+multiplierInput.addEventListener('input',refreshClaimRowTotals);
 rarityInput.addEventListener('change',()=>{
  const auto=rarityMultipliers[rarityInput.value];
  if(auto){multiplierInput.value=auto;}
  else if(rarityInput.value.startsWith('Iconic') && (!multiplierInput.value || multiplierInput.value==='4')){multiplierInput.value=''; multiplierInput.placeholder='Enter Iconic multiplier';}
+ refreshClaimRowTotals();
 });
-cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType:activeCardType(),rarity:rarityInput.value,multiplier,marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
+cardForm.addEventListener('submit',e=>{e.preventDefault();try{const id=cardId.value||playerInput.value.toLowerCase().replace(/[^a-z0-9]+/g,'-');const existing=COLLECTION.find(x=>x.id===id);const multiplier=Number(multiplierInput.value);const cardType=activeCardType();const obj={id,player:playerInput.value.trim(),sport:sportInput.value,cardType,rarity:rarityInput.value,multiplier,booster:collectBoosterSettings(),marketValue:Number(marketValueInput.value||0),favorite:favoriteInput.checked,notes:notesInput.value.trim(),season:seasonInput.value.trim(),team:teamInput.value.trim(),active:existing?.active!==false,claims:collectClaimEntries(multiplier,cardType)};if(existing)Object.assign(existing,obj);else COLLECTION.push(obj);saveCollection();closeModalFn();renderAll();showToast('Collection updated')}catch(err){alert(err.message)}});
 addClaimRowButton.addEventListener('click',()=>addClaimEntry());addFiveClaimsButton.addEventListener('click',()=>{for(let i=0;i<5;i++)addClaimEntry();});importClaimsButton.addEventListener('click',importBulkClaims);importDateOnlyButton.addEventListener('click',importDateOnlyList);findDatesButton.addEventListener('click',findDatesInApp);copyDatePromptButton.addEventListener('click',copyDatePrompt);clearDatePasteButton.addEventListener('click',()=>{dateOnlyPasteInput.value='';});claimRows.addEventListener('click',e=>{const statsBtn=e.target.closest('.stats-row-button');if(statsBtn){openStatsEditor(statsBtn.closest('.claim-entry-row'));return;}const btn=e.target.closest('.remove-claim-button');if(btn){btn.closest('.claim-entry-row').remove();updateClaimEmptyState()}});
 archiveButton.addEventListener('click',()=>{const c=COLLECTION.find(x=>x.id===cardId.value);if(c){c.active=c.active===false;saveCollection();closeModalFn();renderAll();showToast(c.active?'Card restored':'Card archived')}});
 exportButton.addEventListener('click',exportData);sidebarBackup.addEventListener('click',exportData);importInput.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});sidebarImport.addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0])});editBalanceButton.addEventListener('click',()=>{balanceModal.classList.add('open');raxBalanceInput.value=raxBalance});closeBalanceModal.addEventListener('click',()=>balanceModal.classList.remove('open'));balanceModal.addEventListener('click',e=>{if(e.target===balanceModal)balanceModal.classList.remove('open')});balanceForm.addEventListener('submit',e=>{e.preventDefault();raxBalance=Number(raxBalanceInput.value||0);localStorage.setItem('realTrackerPublicRaxBalanceV1',raxBalance);scheduleCloudSave();balanceModal.classList.remove('open');renderAll();showToast('RAX balance updated')});
@@ -832,19 +984,16 @@ statsModal.addEventListener('click',e=>{if(e.target===statsModal)closeStatsEdito
 statsForm.addEventListener('submit',e=>{
  e.preventDefault();
  if(!editingStatsRow)return;
- let parsed=null;
- const raw=statsJsonInput.value.trim();
- if(raw){
-   try{parsed=JSON.parse(raw);}catch{parsed={notes:raw};}
- }
+ const parsed=collectStatsFromModal();
  editingStatsRow._statsData={
-   stats:parsed,
+   stats:hasEnteredStats(parsed)?parsed:null,
    statsConfirmed:statsConfirmedInput.checked,
    opponent:statsOpponentInput.value.trim(),
    result:statsResultInput.value.trim()
  };
  const btn=editingStatsRow.querySelector('.stats-row-button');
- if(btn)btn.textContent=statsConfirmedInput.checked?'✓':(parsed?'Review':'Stats');
+ if(btn)btn.textContent=statsConfirmedInput.checked?'✓':(hasEnteredStats(parsed)?'Review':'Stats');
+ refreshClaimRowTotals();
  closeStatsEditor();
  showToast('Stats saved in row');
 });
