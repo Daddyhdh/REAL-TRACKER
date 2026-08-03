@@ -1,12 +1,14 @@
-# REAL TRACKER 2.0
+# REAL TRACKER 2.1 Visual Update
 
-This package includes the original 12-card collection and every dated claim previously entered from the screenshots.
+Actual app update, not a mockup.
 
-## Replace the old GitHub files
-1. Delete the old website files from the repository.
-2. Keep the repository itself.
-3. Upload every extracted file from this package to the repository root.
-4. Commit directly to `main`.
-5. Netlify will redeploy the same URL automatically.
+Includes:
+- New TRACKER logo asset based on the uploaded mark, with blue glow and "TRACKER" lockup
+- More REAL-style black / electric-blue UI
+- Sharper panels and linework
+- New OTD claim curve chart
+- New sport allocation live board
+- Existing collection data preserved: 12 cards and 453 dated claims
+- Same mobile/desktop responsive app
 
-Do not upload the ZIP itself. Upload the files inside the extracted folder.
+Upload all extracted files to the root of the GitHub repository and commit to main.

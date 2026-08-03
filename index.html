@@ -11,12 +11,12 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>REAL TRACKER 2.0 Data Fix</title>
+  <title>REAL TRACKER 2.1</title>
 </head>
 <body>
 <div id="appShell">
   <aside class="desktop-sidebar">
-    <div class="brand"><div class="real-logo" aria-label="REAL TRACKER"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M7 7h30v30H7z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M13 13h18v5H13zm0 8h13v5H13zm0 8h18v3H13z" fill="currentColor"/></svg></div><div><strong>REAL TRACKER</strong><small>Collection companion</small></div></div>
+    <div class="brand"><img class="tracker-logo-wide" src="tracker-logo-wide.png" alt="REAL TRACKER logo" /></div>
     <nav class="desktop-nav">
       <button class="desktop-nav-item active" data-screen="dashboard">⌂ Dashboard</button>
       <button class="desktop-nav-item" data-screen="claims">✓ Claims</button>
@@ -33,7 +33,7 @@
 
   <div class="app-main">
     <header class="topbar">
-      <div class="mobile-brand-row"><div class="real-logo" aria-label="REAL TRACKER"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M7 7h30v30H7z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M13 13h18v5H13zm0 8h13v5H13zm0 8h18v3H13z" fill="currentColor"/></svg></div><div><div class="eyebrow">REAL TRACKER</div><h1 id="screenTitle">Dashboard</h1></div></div>
+      <div class="mobile-brand-row"><img class="tracker-logo-wide mobile-logo" src="tracker-logo-wide.png" alt="REAL TRACKER logo" /><div class="page-label"><div class="eyebrow">REAL TRACKER</div><h1 id="screenTitle">Dashboard</h1></div></div>
       <div class="top-actions"><button class="icon-button" id="quickAddButton">＋</button><button class="icon-button" id="resetButton">↻</button></div>
     </header>
 
@@ -52,6 +52,27 @@
             <div class="snapshot-number"><span id="portfolioValue">0</span> <small>RAX</small></div>
             <div class="snapshot-caption">Entered market value</div>
             <div class="snapshot-grid"><div><span>OTD potential</span><strong id="snapshotOtd">0</strong></div><div><span>Active cards</span><strong id="snapshotCards">0</strong></div><div><span>Overlap lost</span><strong id="snapshotLost">0</strong></div></div>
+          </article>
+        </div>
+
+        
+        <div class="real-sport-tabs">
+          <span class="active">UFC</span><span>NBA</span><span>NFL</span><span>CFB</span><span>CBB</span><span>NHL</span><span>MLB</span><span>WNBA</span>
+        </div>
+
+        <div class="visual-grid">
+          <article class="panel performance-panel">
+            <div class="panel-head">
+              <div><div class="eyebrow">PERFORMANCE</div><h2>OTD claim curve</h2></div>
+              <div class="chart-badge" id="chartBadge">0 RAX</div>
+            </div>
+            <div id="claimLineChart" class="line-chart"></div>
+          </article>
+          <article class="panel board-panel">
+            <div class="panel-head">
+              <div><div class="eyebrow">LIVE BOARD</div><h2>Sport allocation</h2></div>
+            </div>
+            <div id="sportTileBoard" class="sport-tile-board"></div>
           </article>
         </div>
 
@@ -98,6 +119,7 @@
 
       <section id="manageScreen" class="screen">
         <div class="manage-hero"><div><div class="eyebrow">COLLECTION CONTROL</div><h2>Manage your cards</h2><p>Upgrade, add, archive, back up, or restore your collection.</p></div><button id="addCardButton" class="primary-small">+ Add card</button></div>
+        <div class="logo-preview-card"><img src="tracker-logo-wide.png" alt="Tracker logo"><span>Custom TRACKER mark installed</span></div>
         <div class="manage-actions"><button id="exportButton" class="action-tile"><span>⇩</span><strong>Backup</strong><small>Download your data</small></button><label class="action-tile"><span>⇧</span><strong>Restore</strong><small>Import a backup</small><input id="importInput" type="file" accept=".json" hidden /></label><button id="recoverButton" class="action-tile"><span>↺</span><strong>Recover old data</strong><small>Scan older app versions</small></button></div><div id="manageList" class="manage-list"></div>
       </section>
 
