@@ -1,9 +1,10 @@
-# REAL TRACKER v3
+# REAL TRACKER v4
 
-- Separate mobile and desktop layouts
-- Desktop sidebar and multi-column dashboard
-- New portfolio tracker with optional card market values and RAX balance
-- Sport allocation display, favorites, notes, search and sorting
-- Improved branding and visual design
+Updates:
+- Fixed market-value saving when claim history is empty
+- Added UFC, CFB, NHL, and CBB
+- Replaced claim-history text box with simple date and RAX rows
+- Claim values are entered as the displayed RAX amount and automatically converted for multiplier updates
+- Updated the visual system to feel closer to the clean dark styling of the Real app
 
-Upload these files to the root of the GitHub repository and commit them. Netlify will redeploy the same live URL automatically.
+Upload all extracted files to the root of your GitHub repository and commit. Netlify will redeploy the same URL automatically.

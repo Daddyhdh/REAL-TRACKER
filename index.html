@@ -16,7 +16,7 @@
 <body>
 <div id="appShell">
   <aside class="desktop-sidebar">
-    <div class="brand"><div class="brand-mark">R</div><div><strong>REAL TRACKER</strong><small>Portfolio Command Center</small></div></div>
+    <div class="brand"><div class="brand-mark">R</div><div><strong>REAL TRACKER</strong><small>Real collection companion</small></div></div>
     <nav class="desktop-nav">
       <button class="desktop-nav-item active" data-screen="dashboard">⌂ Dashboard</button>
       <button class="desktop-nav-item" data-screen="claims">✓ Claims</button>
@@ -72,7 +72,7 @@
 
       <section id="claimsScreen" class="screen">
         <div class="page-intro"><div><div class="eyebrow">CLAIM CENTER</div><h2>Optimized claim schedule</h2><p>The best two claims per sport are already selected.</p></div><div class="claim-summary-pill"><span id="claimsRemaining">0</span><small>RAX left</small></div></div>
-        <div class="search-row"><div class="search-box"><span>⌕</span><input id="claimSearch" placeholder="Search claims" /></div><select id="sportFilter" class="filter-select"><option value="all">All sports</option><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option></select></div>
+        <div class="search-row"><div class="search-box"><span>⌕</span><input id="claimSearch" placeholder="Search claims" /></div><select id="sportFilter" class="filter-select"><option value="all">All sports</option><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option><option>UFC</option><option>CFB</option><option>NHL</option><option>CBB</option></select></div>
         <div id="claimsFeed"></div>
       </section>
 
@@ -114,7 +114,41 @@
   </nav>
 </div>
 
-<div class="modal" id="cardModal" aria-hidden="true"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-head"><h2 id="modalTitle">Edit card</h2><button id="closeModal" class="icon-button">×</button></div><form id="cardForm"><input type="hidden" id="cardId" /><label>Player name<input id="playerInput" required /></label><div class="form-grid"><label>Sport<select id="sportInput"><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option></select></label><label>Rarity<select id="rarityInput"></select></label></div><div class="form-grid"><label>Multiplier<input id="multiplierInput" type="number" min="1" step="1" required /></label><label>Market value <small>optional</small><input id="marketValueInput" type="number" min="0" step="1" /></label></div><label class="favorite-toggle"><input id="favoriteInput" type="checkbox" /> Favorite card</label><label>Notes<textarea id="notesInput" rows="3" placeholder="Optional notes"></textarea></label><label>Claim history <small>One line per date: YYYY-MM-DD, base Rax</small><textarea id="claimsInput" rows="7" placeholder="2026-01-25, 67"></textarea></label><div class="modal-actions"><button type="button" id="archiveButton" class="danger-button">Archive</button><button type="submit" class="save-button">Save changes</button></div></form></div></div>
+<div class="modal" id="cardModal" aria-hidden="true">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><div><div class="eyebrow">CARD EDITOR</div><h2 id="modalTitle">Edit card</h2></div><button id="closeModal" class="icon-button">×</button></div>
+    <form id="cardForm">
+      <input type="hidden" id="cardId" />
+      <section class="form-section">
+        <div class="form-section-title">Card details</div>
+        <label>Player name<input id="playerInput" required placeholder="Player name" /></label>
+        <div class="form-grid">
+          <label>Sport<select id="sportInput"><option>NFL</option><option>NBA</option><option>WNBA</option><option>MLB</option><option>FC</option><option>Golf</option><option>UFC</option><option>CFB</option><option>NHL</option><option>CBB</option></select></label>
+          <label>Rarity<select id="rarityInput"></select></label>
+        </div>
+        <div class="form-grid">
+          <label>Multiplier<input id="multiplierInput" type="number" min="1" step="1" required /></label>
+          <label>Market value <small>optional</small><input id="marketValueInput" type="number" min="0" step="1" placeholder="Example: 20000" /></label>
+        </div>
+        <label class="favorite-toggle"><input id="favoriteInput" type="checkbox" /> Favorite card</label>
+        <label>Notes<textarea id="notesInput" rows="3" placeholder="Optional notes"></textarea></label>
+      </section>
+
+      <section class="form-section claim-editor-section">
+        <div class="claim-editor-head">
+          <div><div class="form-section-title">Claim history</div><small>Enter the RAX shown for the card at its current multiplier.</small></div>
+          <button type="button" id="addClaimRowButton" class="add-claim-button">+ Add claim</button>
+        </div>
+        <div class="claim-column-labels"><span>Date</span><span>RAX amount</span><span></span></div>
+        <div id="claimRows" class="claim-entry-list"></div>
+        <div id="claimEmptyState" class="claim-empty-state">No claim dates added yet. You can still save the card and add claims later.</div>
+      </section>
+
+      <div class="modal-actions"><button type="button" id="archiveButton" class="danger-button">Archive</button><button type="submit" class="save-button">Save changes</button></div>
+    </form>
+  </div>
+</div>
 <div class="modal" id="balanceModal" aria-hidden="true"><div class="modal-sheet compact-sheet"><div class="modal-handle"></div><div class="modal-head"><h2>RAX balance</h2><button id="closeBalanceModal" class="icon-button">×</button></div><form id="balanceForm"><label>Current available RAX<input id="raxBalanceInput" type="number" min="0" step="1" /></label><button type="submit" class="save-button full-button">Save balance</button></form></div></div>
 <div class="toast" id="toast"></div><script src="app.js"></script>
 </body></html>
